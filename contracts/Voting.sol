@@ -3,11 +3,16 @@
 pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 
 contract Voting is ERC20 {
     uint256 public constant MAX_SUPPLY = 1000000 * 10 ** 18;
     uint256 public constant REGISTER_AS_VOTER = 5 * 10 ** 18;
     uint256 public constant VERIFY_CANDIDATE = 10 * 10 ** 18;
+
+    using ECDSA for bytes32;
+    using Strings for uint256;
 
     address public owner;
 
@@ -177,5 +182,36 @@ contract Voting is ERC20 {
     function getAllPositions() public view returns (Position[] memory) {
         return listOfPositions;
     }
+
+    function createMessageHash(
+    address userAddress,
+    string memory domain,
+    string memory statement,
+    string memory uri,
+    uint256 chainId,
+    uint256 nonce
+  ) public pure returns (bytes32) {
+    return keccak256(
+      abi.encodePacked(
+        "\x19Ethereum Signed Message:\n",
+        "Domain: ", domain, "\n",
+        "Address: ", Strings.toHexString(uint256(uint160(userAddress)), 20), "\n",
+        "Statement: ", statement, "\n",
+        "URI: ", uri, "\n",
+        "Version: 1\n",
+        "Chain ID: ", chainId.toString(), "\n",
+        "Nonce: ", nonce.toString()
+      )
+    );
+  }
+
+  function verifySignature(bytes32 hash, bytes memory signature) external view returns (bool) {
+    bytes32 signedHash = keccak256(
+            abi.encodePacked("\x19Ethereum Signed Message:\n32", hash)
+        );
+    address recovered = ECDSA.recover(signedHash, signature);
+    
+    return recovered == msg.sender;
+  }
 }
        
