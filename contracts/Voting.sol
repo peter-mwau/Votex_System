@@ -1,0 +1,181 @@
+// SPDX-License-Identifier: MIT
+
+pragma solidity ^0.8.24;
+
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+
+contract Voting is ERC20 {
+    uint256 public constant MAX_SUPPLY = 1000000 * 10 ** 18;
+    uint256 public constant REGISTER_AS_VOTER = 5 * 10 ** 18;
+    uint256 public constant VERIFY_CANDIDATE = 10 * 10 ** 18;
+
+    address public owner;
+
+    struct Voter {
+        string names;
+        uint256 age;
+        string idNumber;
+        bool voted;
+    }
+
+    struct Candidate {
+        string names;
+        uint256 age;
+        string idNumber;
+        string party;
+        uint256 votes;
+        bool verified;
+    }
+
+    struct Position {
+        string pName;
+        Candidate[] candidates;
+    }
+
+    Voter[] public listOfVoters;
+    Candidate[] public listOfCandidates;
+    Position[] public listOfPositions;
+
+    mapping(string => Voter) public voterObject;
+    mapping(string => Candidate) public candidateObject;
+    mapping(string => Position) public positions;
+    mapping(address => Voter) public voters;
+     mapping(string => bool) private positionExists;
+
+    bool public registrationStarted = false;
+    bool public votingStarted = false;
+
+    event VoterRegistrationSuccess(string indexed _names, uint256 _age, string indexed _idNumber);
+    event CandidateRegistrationSuccess(string indexed _names, uint256 _age, string indexed _idNumber, string _party);
+    event VerifyCandidateSuccess(string indexed _names, string indexed _idNumber);
+    event MintSuccess(address _to, uint256 _amount);
+    event VotedSuccess(address indexed voter, string _idNumber, string position, uint256 candidateIndex);
+    event RegistrationStarted();
+    event RegistrationEnded();
+    event VotingStarted();
+    event PositionAdded(string positionName);
+
+    modifier onlyDuringRegistration() {
+        require(registrationStarted, "Registration period has not started.");
+        require(!votingStarted, "Cannot register during voting period.");
+        _;
+    }
+
+    modifier onlyDuringVoting() {
+        require(!registrationStarted, "Registration period is still active.");
+        require(votingStarted, "Voting has not started yet.");
+        _;
+    }
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "You are not the owner!");
+        _;
+    }
+
+    constructor() ERC20("Votex", "VTKN") {
+        owner = msg.sender;
+    }
+
+    // Internal mint function
+    function mintToken(address _to, uint256 _amount) internal returns (bool) {
+        require(_amount + totalSupply() <= MAX_SUPPLY, "Token limit exceeded!");
+        _mint(_to, _amount);
+
+        emit MintSuccess(_to, _amount);
+        return true;
+    }
+
+    // Register as a voter
+    function registerVoter(string memory _names, uint256 _age, string memory _idNumber) external onlyDuringRegistration returns (bool) {
+        require(bytes(voterObject[_idNumber].names).length == 0, "Voter already exists!");
+
+        Voter memory newVoter = Voter(_names, _age, _idNumber, false); // `voted` set to `false`
+        listOfVoters.push(newVoter);
+        voterObject[_idNumber] = newVoter;
+        voters[msg.sender] = newVoter;
+
+        mintToken(msg.sender, REGISTER_AS_VOTER);
+
+        emit VoterRegistrationSuccess(_names, _age, _idNumber);
+        return true;
+    }
+
+    // Register as a candidate
+    function registerCandidate(string memory _names, uint256 _age, string memory _idNumber, string memory _party) external onlyDuringRegistration {
+        require(bytes(candidateObject[_idNumber].names).length == 0, "Candidate already exists!");
+        require(bytes(voterObject[_idNumber].names).length != 0, "You must be a registered voter!");
+
+        Candidate memory newCandidate = Candidate(_names, _age, _idNumber, _party, 0, false); // `votes` set to `0` and `verified` to `false`
+        listOfCandidates.push(newCandidate);
+        candidateObject[_idNumber] = newCandidate;
+
+        emit CandidateRegistrationSuccess(_names, _age, _idNumber, _party);
+    }
+
+    // Verify a candidate
+    function verifyCandidate(string memory _idNumber) external onlyOwner {
+        require(!candidateObject[_idNumber].verified, "Candidate already verified!");
+        candidateObject[_idNumber].verified = true;
+
+        mintToken(msg.sender, VERIFY_CANDIDATE);
+
+        emit VerifyCandidateSuccess(candidateObject[_idNumber].names, _idNumber);
+    }
+
+    // Voting function
+    function vote(string memory position, uint candidateIndex) public onlyDuringVoting {
+        Voter storage voter = voters[msg.sender];
+        require(!voter.voted, "You have already voted.");
+        require(positions[position].candidates.length > 0, "Invalid position.");
+        require(candidateIndex < positions[position].candidates.length, "Invalid candidate index.");
+
+        positions[position].candidates[candidateIndex].votes += 1;
+        voter.voted = true;
+
+        emit VotedSuccess(msg.sender, voter.idNumber, position, candidateIndex);
+    }
+
+    // Start the registration process
+    function startRegistration() public onlyOwner {
+        require(!registrationStarted, "Registration has already started.");
+        require(!votingStarted, "Cannot start registration after voting has begun.");
+        registrationStarted = true;
+
+        emit RegistrationStarted();
+    }
+
+    // End the registration and start the voting process
+    function endRegistrationAndStartVoting() public onlyOwner {
+        require(registrationStarted, "Registration period has not started.");
+        require(!votingStarted, "Voting has already started.");
+
+        registrationStarted = false;
+        votingStarted = true;
+
+        emit RegistrationEnded();
+        emit VotingStarted();
+    }
+
+    // Add one or multiple positions
+    function addPositions(string[] memory _pNames) external onlyOwner {
+        for (uint i = 0; i < _pNames.length; i++) {
+            require(!positionExists[_pNames[i]], "Position already exists!");
+            Position storage newPosition = positions[_pNames[i]];
+            newPosition.pName = _pNames[i];
+            listOfPositions.push(newPosition);
+
+            positionExists[_pNames[i]] = true;
+
+            emit PositionAdded(_pNames[i]);
+        }
+    }
+
+    function getPositionCount() public view returns (uint256) {
+        return listOfPositions.length;
+    }
+
+    function getAllPositions() public view returns (Position[] memory) {
+        return listOfPositions;
+    }
+}
+       
