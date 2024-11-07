@@ -109,6 +109,11 @@ const Navbar = () => {
           <h1 className="text-lg font-bold text-gray-700">Votex System</h1>
         </div>
 
+        <div
+          id="weglot-language-selector"
+          className="flex items-center space-x-2 absolute pt-10 hover:cursor-pointer hover:shadow-lg"
+        ></div>
+
         {/* Navigation Links */}
         <div className="flex gap-6">
           <Link
