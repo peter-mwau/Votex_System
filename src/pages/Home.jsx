@@ -4,13 +4,15 @@ import { useAccount } from "wagmi";
 import { useNavigate } from "react-router-dom";
 import ABI from "../artifacts/contracts/Voting.sol/Voting.json";
 import { useEthersSigner } from "../components/useClientSigner";
+import AddVoterForm from "../components/AddVoterForm";
+import "../index.css";
 
 const contractAddress = import.meta.env.VITE_APP_CONTRACT_ADDRESS;
 const contractABI = ABI.abi;
 
 const Home = () => {
   const { isConnected } = useAccount();
-
+  const [voterForm, setVoterForm] = useState(false);
   const [message, setMessage] = useState("");
   const [signature, setSignature] = useState("");
   const [hashedMessage, setHashedMessage] = useState("");
@@ -83,66 +85,95 @@ const Home = () => {
     }
   };
 
+  const handleClose = () => {
+    if (voterForm) {
+      setVoterForm(false);
+    } else {
+      setCandidateForm(false);
+      setCandidateMetadata(null);
+    }
+  };
+
+  const openForm = () => {
+    setVoterForm(true);
+  };
+
   return (
-    <div className="bg-gray-100 min-h-screen flex items-center justify-center p-6">
-      <div className="w-full max-w-lg bg-white shadow-md rounded-lg p-8 space-y-6">
-        <h1 className="text-2xl font-semibold text-center text-gray-800">
-          Sign and Verify Message
-        </h1>
+    <>
+      <div>
+        <button
+          onClick={openForm}
+          className="bg-cyan-950 text-white rounded-md hover:cursor-pointer absolute mt-[80px] p-2 font-semibold right-5"
+        >
+          Register As Voter
+        </button>
+      </div>
+      <div className="bg-gray-100 min-h-screen flex items-center justify-center p-6">
+        <div className="w-full max-w-lg bg-white shadow-md rounded-lg p-8 space-y-6">
+          <h1 className="text-2xl font-semibold text-center text-gray-800">
+            Sign and Verify Message
+          </h1>
 
-        {isConnected && (
-          <>
-            <div className="flex flex-col">
-              <label className="text-sm text-gray-600">Message</label>
-              <input
-                type="text"
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                className="mt-1 p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter message to sign"
-              />
-            </div>
-
-            <button
-              onClick={handleSignMessage}
-              className="w-full py-2 px-4 bg-cyan-950 text-white font-semibold rounded-lg hover:bg-yellow-500 transition-colors"
-            >
-              Sign Message
-            </button>
-
-            {signature && (
-              <div className="space-y-4 bg-gray-50 p-4 rounded-lg">
-                <div>
-                  <span className="font-semibold">Original Message:</span>{" "}
-                  <span className="break-words">{message}</span>
-                </div>
-                <div>
-                  <span className="font-semibold">Hashed Message:</span>{" "}
-                  <span className="break-words">{hashedMessage}</span>
-                </div>
-                <div>
-                  <span className="font-semibold">Signature:</span>{" "}
-                  <span className="break-words">{signature}</span>
-                </div>
-                <div>
-                  <span className="font-semibold">Verification Status:</span>{" "}
-                  <span className="italic text-green-500 font-semibold">
-                    {verificationStatus}
-                  </span>
-                </div>
-
-                <div>
-                  <span className="font-semibold">Verification Result:</span>{" "}
-                  <span className="text-yellow-500 italic">
-                    {verificationResult}
-                  </span>
-                </div>
+          {isConnected && (
+            <>
+              <div className="flex flex-col">
+                <label className="text-sm text-gray-600">Message</label>
+                <input
+                  type="text"
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  className="mt-1 p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter message to sign"
+                />
               </div>
-            )}
-          </>
+
+              <button
+                onClick={handleSignMessage}
+                className="w-full py-2 px-4 bg-cyan-950 text-white font-semibold rounded-lg hover:bg-yellow-500 transition-colors"
+              >
+                Sign Message
+              </button>
+
+              {signature && (
+                <div className="space-y-4 bg-gray-50 p-4 rounded-lg">
+                  <div>
+                    <span className="font-semibold">Original Message:</span>{" "}
+                    <span className="break-words">{message}</span>
+                  </div>
+                  <div>
+                    <span className="font-semibold">Hashed Message:</span>{" "}
+                    <span className="break-words">{hashedMessage}</span>
+                  </div>
+                  <div>
+                    <span className="font-semibold">Signature:</span>{" "}
+                    <span className="break-words">{signature}</span>
+                  </div>
+                  <div>
+                    <span className="font-semibold">Verification Status:</span>{" "}
+                    <span className="italic text-green-500 font-semibold">
+                      {verificationStatus}
+                    </span>
+                  </div>
+
+                  <div>
+                    <span className="font-semibold">Verification Result:</span>{" "}
+                    <span className="text-yellow-500 italic">
+                      {verificationResult}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
+        {voterForm && (
+          <div className="modalOverlay">
+            <AddVoterForm onClose={handleClose} />
+          </div>
         )}
       </div>
-    </div>
+    </>
   );
 };
 
