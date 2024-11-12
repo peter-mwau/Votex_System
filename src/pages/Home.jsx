@@ -4,15 +4,12 @@ import { useAccount } from "wagmi";
 import { useNavigate } from "react-router-dom";
 import ABI from "../artifacts/contracts/Voting.sol/Voting.json";
 import { useEthersSigner } from "../components/useClientSigner";
-import AddVoterForm from "../components/AddVoterForm";
-import "../index.css";
 
 const contractAddress = import.meta.env.VITE_APP_CONTRACT_ADDRESS;
 const contractABI = ABI.abi;
 
 const Home = () => {
   const { isConnected } = useAccount();
-  const [voterForm, setVoterForm] = useState(false);
   const [message, setMessage] = useState("");
   const [signature, setSignature] = useState("");
   const [hashedMessage, setHashedMessage] = useState("");
@@ -85,29 +82,8 @@ const Home = () => {
     }
   };
 
-  const handleClose = () => {
-    if (voterForm) {
-      setVoterForm(false);
-    } else {
-      setCandidateForm(false);
-      setCandidateMetadata(null);
-    }
-  };
-
-  const openForm = () => {
-    setVoterForm(true);
-  };
-
   return (
     <>
-      <div>
-        <button
-          onClick={openForm}
-          className="bg-cyan-950 text-white rounded-md hover:cursor-pointer absolute mt-[80px] p-2 font-semibold right-5"
-        >
-          Register As Voter
-        </button>
-      </div>
       <div className="bg-gray-100 min-h-screen flex items-center justify-center p-6">
         <div className="w-full max-w-lg bg-white shadow-md rounded-lg p-8 space-y-6">
           <h1 className="text-2xl font-semibold text-center text-gray-800">
@@ -166,12 +142,6 @@ const Home = () => {
             </>
           )}
         </div>
-
-        {voterForm && (
-          <div className="modalOverlay">
-            <AddVoterForm onClose={handleClose} />
-          </div>
-        )}
       </div>
     </>
   );

@@ -1,10 +1,9 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useState } from "react";
 import { ethers } from "ethers";
 import ABI from "../artifacts/contracts/Voting.sol/Voting.json";
-import { IoCloseCircleSharp } from "react-icons/io5";
-import axios from "axios";
 import { useDisconnect, useAccount } from "wagmi";
 import { useEthersSigner } from "../components/useClientSigner";
+import { upload } from "../providers/fileStorageConfig";
 
 const contractAddress = import.meta.env.VITE_APP_CONTRACT_ADDRESS;
 const contractABI = ABI.abi;
@@ -30,14 +29,106 @@ const AddVoterForm = ({ onClose }) => {
     setIsVoted(null);
   };
 
+  const formData = {
+    officialNames,
+    idNumber,
+    age,
+    voted,
+  };
+
+  const registerVoter = async () => {
+    try {
+      setLoading(true);
+      setError("");
+      setSuccess("");
+
+      // Input validation
+      if (!officialNames || !idNumber || !age) {
+        setError("Please fill in all required fields");
+        return;
+      }
+
+      if (parseInt(age) < 18) {
+        setError("Voter must be at least 18 years old");
+        return;
+      }
+
+      // Get the signer
+      const signer = await signerPromise;
+      if (!signer) {
+        setError("No signer available. Please connect your wallet.");
+        return;
+      }
+
+      // Create contract instance
+      const contract = new ethers.Contract(
+        contractAddress,
+        contractABI,
+        signer
+      );
+
+      // Convert age to number for contract interaction
+      const ageNumber = parseInt(age);
+
+      // First execute the blockchain transaction
+      const tx = await contract.registerVoter(
+        officialNames,
+        ageNumber,
+        idNumber
+      );
+
+      // Wait for transaction confirmation
+      const receipt = await tx.wait();
+
+      // Only proceed with storage if transaction was successful
+      if (receipt.status === 1) {
+        // Prepare the data for storage
+        const jsonString = JSON.stringify(formData);
+        const blob = new Blob([jsonString], { type: "application/json" });
+        const file = new File([blob], `${idNumber}.json`, {
+          type: "application/json",
+        });
+
+        // Create a DataTransfer object and add the file
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+
+        // Create a temporary file input element with the DataTransfer
+        const tempFileInput = document.createElement("input");
+        tempFileInput.type = "file";
+        tempFileInput.files = dataTransfer.files;
+
+        // Upload to SKALE storage only after successful transaction
+        await upload({ target: tempFileInput }, "voter_data");
+
+        setSuccess("Voter registered successfully!");
+        resetFormFields();
+
+        // Listen for the VoterRegistrationSuccess event
+        contract.on("VoterRegistrationSuccess", (names, age, idNumber) => {
+          console.log("Voter Registration Event:", { names, age, idNumber });
+        });
+      } else {
+        setError("Transaction failed. Please try again.");
+      }
+    } catch (err) {
+      console.error("Registration error:", err);
+      if (err.reason) {
+        setError(err.reason);
+      } else if (err.message) {
+        setError(err.message);
+      } else {
+        setError("Failed to register voter. Please try again.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <>
-      <div className="container mx-auto h-auto">
-        <div className="flex justify-center items-center mt-[20px]">
-          <IoCloseCircleSharp
-            className="absolute w-10 h-10 text-red-600 bg-white hover:cursor-pointer items-end justify-end mx-auto flex text-end left-[85%] top-[50px] rounded-full"
-            onClick={onClose}
-          />
+      <div className="container mx-auto h-auto ">
+        <div className="flex justify-center items-center pt-[100px]">
           <div className="w-full max-w-md">
             <form className="bg-white dark:bg-gray-900 shadow-md rounded px-8 pt-6 pb-8 mb-4 dark:shadow-white">
               <h2 className="text-center uppercase font-semibold text-cyan-950 dark:text-white pb-5 text-2xl">
@@ -133,7 +224,7 @@ const AddVoterForm = ({ onClose }) => {
               <div className="flex items-center justify-between">
                 <button
                   type="button"
-                  //   onClick={registerVoter}
+                  onClick={registerVoter}
                   className={`bg-cyan-950 text-white font-semibold w-auto m-2 rounded-lg dark:bg-yellow-500 p-2  focus:outline-none focus:shadow-outline ${
                     loading ? "opacity-50 cursor-not-allowed" : ""
                   }`}
