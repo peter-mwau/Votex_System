@@ -13,6 +13,7 @@ import CandidateViewPage from "./pages/candidateDetails";
 import { Provider } from "react-redux";
 import store from "../backend/store.js";
 import Chatbot from "./components/chatbot.jsx";
+import Help from "./pages/Help.jsx";
 
 if (typeof global === "undefined") {
   var global = window;
@@ -45,6 +46,7 @@ function App() {
             </Provider>
           }
         />
+        <Route path="/help" element={<Help />} />
       </Routes>
     </>
   );

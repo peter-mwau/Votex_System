@@ -7,6 +7,7 @@ import { useEthersSigner } from "../components/useClientSigner";
 import { FiMenu, FiX } from "react-icons/fi";
 import { IoLogoWechat } from "react-icons/io5";
 import { IoHome, IoPersonAdd, IoPerson, IoEye } from "react-icons/io5";
+import { TbProgressHelp } from "react-icons/tb";
 import {
   FaHome,
   FaRegClipboard,
@@ -183,6 +184,13 @@ const Sidebar = () => {
               >
                 <IoLogoWechat className="mr-2" />
                 <span>Chatbot</span>
+              </Link>
+              <Link
+                to="/help"
+                className="py-2 px-3 rounded text-gray-600 hover:bg-white flex items-center"
+              >
+                <TbProgressHelp className="mr-2" />
+                <span>Help</span>
               </Link>
             </>
           )}

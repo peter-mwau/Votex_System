@@ -184,6 +184,12 @@ const Navbar = () => {
           >
             Contact
           </Link>
+          <Link
+            to="/help"
+            className="text-lg font-semibold text-gray-600 hover:text-gray-800"
+          >
+            Help
+          </Link>
         </div>
 
         {/* Connect Button and Sign-In */}
