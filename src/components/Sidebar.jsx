@@ -7,6 +7,14 @@ import { useEthersSigner } from "../components/useClientSigner";
 import { FiMenu, FiX } from "react-icons/fi";
 import { IoLogoWechat } from "react-icons/io5";
 import { IoHome, IoPersonAdd, IoPerson, IoEye } from "react-icons/io5";
+import {
+  FaHome,
+  FaRegClipboard,
+  FaVoteYea,
+  FaPlus,
+  FaUsers,
+  FaUserTie,
+} from "react-icons/fa";
 
 const contractAddress = import.meta.env.VITE_APP_CONTRACT_ADDRESS;
 const contractABI = ABI.abi;
@@ -87,39 +95,52 @@ const Sidebar = () => {
               </h2>
               <Link
                 to="/home"
-                className="block py-2 px-3 rounded text-gray-600 hover:bg-white"
+                className="py-2 px-3 rounded text-gray-600 hover:bg-white flex items-center"
               >
+                <FaHome className="mr-2" />
                 Dashboard
               </Link>
               <Link
                 to="/admin/start-registration"
-                className="block py-2 px-3 rounded  text-gray-600 hover:bg-white"
+                className="py-2 px-3 rounded text-gray-600 hover:bg-white flex items-center"
               >
+                <FaRegClipboard className="mr-2" />
                 Start/Stop Registration
               </Link>
               <Link
                 to="/admin/start-voting"
-                className="block py-2 px-3 rounded  text-gray-600 hover:bg-white"
+                className="py-2 px-3 rounded text-gray-600 hover:bg-white flex items-center"
               >
+                <FaVoteYea className="mr-2" />
                 Start/Stop Voting
               </Link>
               <Link
                 to="/admin/add-positions"
-                className="block py-2 px-3 rounded  text-gray-600 hover:bg-white"
+                className="py-2 px-3 rounded text-gray-600 hover:bg-white flex items-center"
               >
+                <FaPlus className="mr-2" />
                 Add Positions
               </Link>
               <Link
                 to="/view-voterDetails"
-                className="block py-2 px-3 text-gray-600 rounded hover:bg-white"
+                className="py-2 px-3 text-gray-600 rounded hover:bg-white flex items-center"
               >
+                <FaUsers className="mr-2" />
                 View Voters Details
               </Link>
               <Link
                 to="/admin/view-candidates"
-                className="block py-2 px-3 rounded  text-gray-600 hover:bg-white"
+                className="py-2 px-3 rounded text-gray-600 hover:bg-white flex items-center"
               >
+                <FaUserTie className="mr-2" />
                 View Candidates
+              </Link>
+              <Link
+                to="/chatbot"
+                className="py-2 px-3 rounded text-gray-600 hover:bg-white flex items-center"
+              >
+                <IoLogoWechat className="mr-2" />
+                <span>Chatbot</span>
               </Link>
             </>
           ) : (
