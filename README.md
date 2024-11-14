@@ -11,6 +11,16 @@ Votex_Systems is a simple blockchain-based voting machine dApp designed for youn
 - **Skale**: A blockchain network that provides a scalable and secure environment for decentralized applications.
 - **JavaScript (JS & JSX)**: The programming languages used for building the frontend of the application.
 
+## How the System Works
+
+1. **Start Registration Period**: The admin must first start the registration period to allow people to start registering as voters.
+2. **Add Positions**: The admin also has to add positions for candidates to register as candidates.
+3. **Candidate Registration**: Candidates must first be registered voters before being allowed to register as candidates.
+4. **Review Candidates**: The admin will be able to view and review all the registered candidates and can either approve or reject their candidature.
+5. **Start Voting Period**: After reviewing candidates, the admin can start the voting period, which automatically stops the registration period.
+6. **Voting**: Voters can now vote for the approved candidates.
+7. **Votex ChatApp**: There is an in-system Votex ChatApp where logged-in and registered voters can chat with fellow voters, plan events, and more.
+
 ## Getting Started
 
 To clone the repository and set up the project locally, follow these steps:
