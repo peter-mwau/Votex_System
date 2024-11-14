@@ -222,7 +222,7 @@ const Navbar = () => {
           />
         )}
         {dropdownVisible && (
-          <div className="absolute right-[120px] mt-[280px] w-[350px] bg-white border border-gray-300 rounded-lg shadow-lg">
+          <div className="absolute right-[120px] mt-[330px] w-[350px] bg-white border border-gray-300 rounded-lg shadow-lg">
             <div className="p-4">
               <p className="font-semibold text-lg mb-2">Wallet Details</p>
               <p className="mb-2">
@@ -254,6 +254,12 @@ const Navbar = () => {
                 <span className="font-semibold">
                   {tokenBalance} {tokenSymbol}
                 </span>
+              </p>
+              <p
+                onClick={signOut}
+                className="mb-2 text-red-500 hover:text-red-600 hover:underline hover:cursor-pointer"
+              >
+                Sign Out
               </p>
             </div>
           </div>
