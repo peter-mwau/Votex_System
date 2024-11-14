@@ -1,23 +1,69 @@
 import { Link } from "react-router-dom";
-import { useDisconnect, useAccount } from "wagmi";
+import { useDisconnect, useAccount, useBalance } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useState, useEffect } from "react";
 import { ethers } from "ethers";
 import ABI from "../artifacts/contracts/Voting.sol/Voting.json";
 import { useNavigate } from "react-router-dom";
 import { useEthersSigner } from "../components/useClientSigner";
+import { IoMdWallet } from "react-icons/io";
 
 const contractAddress = import.meta.env.VITE_APP_CONTRACT_ADDRESS;
 const contractABI = ABI.abi;
 
 const Navbar = () => {
   const logo = "/vite.svg";
-  const { isConnected } = useAccount();
+  const { isConnected, address } = useAccount();
   const { disconnect } = useDisconnect();
   const signerPromise = useEthersSigner();
   const [verificationResult, setVerificationResult] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const navigate = useNavigate();
+  const [dropdownVisible, setDropdownVisible] = useState(false);
+  const { data: balanceData } = useBalance({
+    address,
+  });
+  const [tokenBalance, setTokenBalance] = useState("");
+  const [tokenSymbol, setTokenSymbol] = useState("");
+
+  const fetchTokenBalance = async () => {
+    if (isConnected && address) {
+      try {
+        const signer = await signerPromise;
+        const contract = new ethers.Contract(
+          contractAddress,
+          contractABI,
+          signer
+        );
+
+        const tokenBalanceRaw = await contract.balanceOf(address);
+        const tokenDecimalsRaw = await contract.decimals();
+        const tokenSymbol = await contract.symbol();
+
+        const tokenDecimals = Number(tokenDecimalsRaw);
+        const formattedTokenBalance =
+          Number(tokenBalanceRaw) / 10 ** tokenDecimals;
+
+        setTokenBalance(formattedTokenBalance);
+        setTokenSymbol(tokenSymbol);
+
+        console.log("Token Balance: ", formattedTokenBalance);
+        console.log("Token Symbol: ", tokenSymbol);
+      } catch (error) {
+        console.error("Error fetching token balance:", error);
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (dropdownVisible) {
+      fetchTokenBalance();
+    }
+  }, [dropdownVisible, isConnected, address]);
+
+  const toggleDropdown = () => {
+    setDropdownVisible(!dropdownVisible);
+  };
 
   const signIn = async () => {
     if (!isConnected) {
@@ -119,7 +165,7 @@ const Navbar = () => {
         ></div>
 
         {/* Navigation Links */}
-        <div className="flex gap-6">
+        <div className="md:flex lg:flex gap-6 hidden ">
           <Link
             to="/home"
             className="text-lg font-semibold text-gray-600 hover:text-gray-800"
@@ -164,6 +210,54 @@ const Navbar = () => {
             <ConnectButton />
           )}
         </div>
+        {isConnected ? (
+          <IoMdWallet
+            onClick={toggleDropdown}
+            className="w-[40px] h-[40px] rounded-full p-2 hover:cursor-pointer border-2 border-green-500 lg:block hidden md:block"
+          />
+        ) : (
+          <IoMdWallet
+            onClick={toggleDropdown}
+            className="w-[40px] h-[40px] rounded-full p-2 hover:cursor-pointer border-2 border-gray-400 lg:block hidden md:block"
+          />
+        )}
+        {dropdownVisible && (
+          <div className="absolute right-[120px] mt-[280px] w-[350px] bg-white border border-gray-300 rounded-lg shadow-lg">
+            <div className="p-4">
+              <p className="font-semibold text-lg mb-2">Wallet Details</p>
+              <p className="mb-2">
+                Status:{" "}
+                <span
+                  className={
+                    isConnected
+                      ? "text-green-500 font-semibold"
+                      : "text-red-500"
+                  }
+                >
+                  {isConnected ? "Connected" : "Disconnected"}
+                </span>
+              </p>
+              <p className="mb-2">
+                Address:{" "}
+                <span className="block w-full break-words bg-gray-100 p-2 rounded-md">
+                  {address}
+                </span>
+              </p>
+              <p className="mb-2">
+                Balance:{" "}
+                <span className="font-semibold">
+                  {balanceData?.formatted} {balanceData?.symbol}
+                </span>
+              </p>
+              <p className="mb-2">
+                Token Balance:{" "}
+                <span className="font-semibold">
+                  {tokenBalance} {tokenSymbol}
+                </span>
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Verification Result */}
