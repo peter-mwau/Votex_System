@@ -5,6 +5,8 @@ import { ethers } from "ethers";
 import ABI from "../artifacts/contracts/Voting.sol/Voting.json";
 import { useEthersSigner } from "../components/useClientSigner";
 import { FiMenu, FiX } from "react-icons/fi";
+import { IoLogoWechat } from "react-icons/io5";
+import { IoHome, IoPersonAdd, IoPerson, IoEye } from "react-icons/io5";
 
 const contractAddress = import.meta.env.VITE_APP_CONTRACT_ADDRESS;
 const contractABI = ABI.abi;
@@ -128,27 +130,38 @@ const Sidebar = () => {
               </h2>
               <Link
                 to="/home"
-                className="block py-2 px-3 rounded text-gray-600 hover:bg-white"
+                className="py-2 px-3 rounded text-gray-600 hover:bg-white flex items-center"
               >
-                Dashboard
+                <IoHome className="mr-2" />
+                <span>Dashboard</span>
               </Link>
               <Link
                 to="/register-voter"
-                className="block py-2 px-3 rounded text-gray-600 hover:bg-white"
+                className="py-2 px-3 rounded text-gray-600 hover:bg-white flex items-center"
               >
-                Register as Voter
+                <IoPersonAdd className="mr-2" />
+                <span>Register as Voter</span>
               </Link>
               <Link
                 to="/register-candidate"
-                className="block py-2 px-3 text-gray-600 rounded hover:bg-white"
+                className="py-2 px-3 text-gray-600 rounded hover:bg-white flex items-center"
               >
-                Register as Candidate
+                <IoPerson className="mr-2" />
+                <span>Register as Candidate</span>
               </Link>
               <Link
                 to="/admin/view-candidates"
-                className="block py-2 px-3 rounded  text-gray-600 hover:bg-white"
+                className="py-2 px-3 rounded text-gray-600 hover:bg-white flex items-center"
               >
-                View Candidates
+                <IoEye className="mr-2" />
+                <span>View Candidates</span>
+              </Link>
+              <Link
+                to="/chatbot"
+                className="py-2 px-3 rounded text-gray-600 hover:bg-white flex items-center"
+              >
+                <IoLogoWechat className="mr-2" />
+                <span>Chatbot</span>
               </Link>
             </>
           )}

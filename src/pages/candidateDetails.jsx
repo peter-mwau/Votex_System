@@ -88,8 +88,37 @@ const CandidateViewPage = () => {
     }
   };
 
-  const handleVote = (candidateId) => {
-    console.log(`Voted for candidate with ID: ${candidateId}`);
+  const handleVote = async (position, candidateIndex) => {
+    try {
+      const signer = await signerPromise;
+      const contract = new ethers.Contract(
+        contractAddress,
+        contractABI,
+        signer
+      );
+      const tx = await contract.vote(position, candidateIndex);
+      await tx.wait();
+      console.log(
+        `Voted for candidate at index ${candidateIndex} for position ${position}`
+      );
+      setSuccess(
+        `Voted for candidate at index ${candidateIndex} for position ${position}`
+      );
+    } catch (error) {
+      console.error("Full error object:", error);
+      if (
+        error &&
+        ethers.errors &&
+        error.code === ethers.errors.CALL_EXCEPTION
+      ) {
+        console.error("Transaction reverted:", error.reason);
+      } else if (error && error.code === -32603) {
+        console.error("Internal JSON-RPC error:", error.message, error.data);
+      } else {
+        console.error("Error voting for candidate:", error);
+      }
+      setError(`Error voting for candidate: ${error.message}`);
+    }
   };
 
   const groupCandidatesByPosition = (candidates) => {
@@ -131,86 +160,97 @@ const CandidateViewPage = () => {
               </p>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-5">
-                {groupedCandidates[position].map((candidate, index) => (
-                  <div
-                    key={index}
-                    className="bg-gradient-to-b from-gray-50 to-gray-200 shadow-lg rounded-lg p-6 hover:shadow-2xl transition duration-300 transform hover:-translate-y-1"
-                  >
-                    <h2 className="text-2xl font-semibold text-cyan-900 mb-4 flex items-center">
-                      <FaUser className="mr-2 text-cyan-800" />
-                      {candidate[0]}
-                    </h2>
-                    <div className="border-t border-gray-300 my-4"></div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <p className="text-gray-700 flex items-center">
-                        <FaCalendarAlt className="mr-2 text-cyan-800" />
-                        Age:{" "}
-                        <span className="ml-1 font-medium">
-                          {parseInt(candidate[1], 10)}
-                        </span>
-                      </p>
-                      <p className="text-gray-700 flex items-center">
-                        <FaIdBadge className="mr-2 text-cyan-800" />
-                        ID:{" "}
-                        <span className="ml-1 font-medium">{candidate[2]}</span>
-                      </p>
-                      <p className="text-gray-700 flex items-center">
-                        <FaVoteYea className="mr-2 text-cyan-800" />
-                        Party:{" "}
-                        <span className="ml-1 font-medium">{candidate[3]}</span>
-                      </p>
-                      <p className="text-gray-700 flex items-center">
-                        <FaVoteYea className="mr-2 text-cyan-800" />
-                        Votes:{" "}
-                        <span className="ml-1 font-medium">
-                          {parseInt(candidate[4], 10)}
-                        </span>
-                      </p>
-                      <p className="text-gray-700 flex items-center">
-                        <FaCheckCircle className="mr-2 text-cyan-800" />
-                        Verified:{" "}
-                        <span
-                          className={`ml-1 font-semibold ${
-                            candidate[5] ? "text-green-500" : "text-red-500"
-                          }`}
-                        >
-                          {candidate[5] ? "True" : "False"}
-                        </span>
-                      </p>
-                      <p className="text-gray-700 flex items-center">
+                {groupedCandidates[position].map((candidate) => {
+                  const candidateIndex = candidates.findIndex(
+                    (c) => c[2] === candidate[2]
+                  );
+                  return (
+                    <div
+                      key={candidateIndex}
+                      className="bg-gradient-to-b from-gray-50 to-gray-200 shadow-lg rounded-lg p-6 hover:shadow-2xl transition duration-300 transform hover:-translate-y-1"
+                    >
+                      <h2 className="text-2xl font-semibold text-cyan-900 mb-4 flex items-center">
                         <FaUser className="mr-2 text-cyan-800" />
-                        Pos:{" "}
-                        <span className="ml-1 font-medium">{candidate[6]}</span>
-                      </p>
+                        {candidate[0]}
+                      </h2>
+                      <div className="border-t border-gray-300 my-4"></div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <p className="text-gray-700 flex items-center">
+                          <FaCalendarAlt className="mr-2 text-cyan-800" />
+                          Age:{" "}
+                          <span className="ml-1 font-medium">
+                            {parseInt(candidate[1], 10)}
+                          </span>
+                        </p>
+                        <p className="text-gray-700 flex items-center">
+                          <FaIdBadge className="mr-2 text-cyan-800" />
+                          ID:{" "}
+                          <span className="ml-1 font-medium">
+                            {candidate[2]}
+                          </span>
+                        </p>
+                        <p className="text-gray-700 flex items-center">
+                          <FaVoteYea className="mr-2 text-cyan-800" />
+                          Party:{" "}
+                          <span className="ml-1 font-medium">
+                            {candidate[3]}
+                          </span>
+                        </p>
+                        <p className="text-gray-700 flex items-center">
+                          <FaVoteYea className="mr-2 text-cyan-800" />
+                          Votes:{" "}
+                          <span className="ml-1 font-medium">
+                            {parseInt(candidate[4], 10)}
+                          </span>
+                        </p>
+                        <p className="text-gray-700 flex items-center">
+                          <FaCheckCircle className="mr-2 text-cyan-800" />
+                          Verified:{" "}
+                          <span
+                            className={`ml-1 font-semibold ${
+                              candidate[5] ? "text-green-500" : "text-red-500"
+                            }`}
+                          >
+                            {candidate[5] ? "True" : "False"}
+                          </span>
+                        </p>
+                        <p className="text-gray-700 flex items-center">
+                          <FaUser className="mr-2 text-cyan-800" />
+                          Pos:{" "}
+                          <span className="ml-1 font-medium">
+                            {candidate[6]}
+                          </span>
+                        </p>
+                      </div>
+                      {!candidate[5] && isAdmin && (
+                        <div className="mt-4 flex justify-between">
+                          <button
+                            onClick={() => handleApprove(candidate[2])}
+                            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                          >
+                            Approve
+                          </button>
+                          <button
+                            onClick={() => handleReject(candidate[2])}
+                            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                          >
+                            Reject
+                          </button>
+                        </div>
+                      )}
+                      {candidate[5] && (
+                        <div className="mt-4">
+                          <button
+                            onClick={() => handleVote(position, candidateIndex)}
+                            className="bg-cyan-950 font-semibold hover:cursor-pointer hover:bg-yellow-500 text-white px-3 py-2 rounded"
+                          >
+                            Vote
+                          </button>
+                        </div>
+                      )}
                     </div>
-                    {!candidate[5] && isAdmin && (
-                      <div className="mt-4 flex justify-between">
-                        <button
-                          onClick={() => handleApprove(candidate[2])}
-                          className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-                        >
-                          Approve
-                        </button>
-                        <button
-                          onClick={() => handleReject(candidate[2])}
-                          className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-                        >
-                          Reject
-                        </button>
-                      </div>
-                    )}
-                    {candidate[5] && (
-                      <div className="mt-4">
-                        <button
-                          onClick={() => handleVote(candidate[2])}
-                          className="bg-cyan-950 font-semibold hover:cursor-pointer hover:bg-yellow-500 text-white px-3 py-2 rounded"
-                        >
-                          Vote
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

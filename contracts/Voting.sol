@@ -117,6 +117,10 @@ contract Voting is ERC20 {
         listOfCandidates.push(newCandidate);
         candidateObject[_idNumber] = newCandidate;
 
+        require(positions[_position].candidates.length >= 0, "Position does not exist!");
+
+        positions[_position].candidates.push(newCandidate);
+
         emit CandidateRegistrationSuccess(_names, _age, _idNumber, _party, _position);
     }
 

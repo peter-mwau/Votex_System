@@ -10,6 +10,9 @@ import VoterDetails from "./pages/voterDetails";
 import AddCandidate from "./components/AddCandidate";
 import AddPositionsForm from "./components/AddPositions";
 import CandidateViewPage from "./pages/candidateDetails";
+import { Provider } from "react-redux";
+import store from "../backend/store.js";
+import Chatbot from "./components/chatbot.jsx";
 
 if (typeof global === "undefined") {
   var global = window;
@@ -33,7 +36,15 @@ function App() {
         />
         <Route path="/admin/start-voting" element={<StartVoting />} />
         <Route path="/view-voterDetails" element={<VoterDetails />} />
-        <Route path="//admin/view-candidates" element={<CandidateViewPage />} />
+        <Route path="/admin/view-candidates" element={<CandidateViewPage />} />
+        <Route
+          path="/chatbot"
+          element={
+            <Provider store={store}>
+              <Chatbot />
+            </Provider>
+          }
+        />
       </Routes>
     </>
   );

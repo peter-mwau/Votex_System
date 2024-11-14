@@ -1,0 +1,213 @@
+import { useState, useEffect, useRef } from "react";
+
+const Chatbot = () => {
+  const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState("");
+  const [currentUser, setCurrentUser] = useState("");
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [replyTo, setReplyTo] = useState(null);
+  const ws = useRef(null);
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      ws.current = new WebSocket("ws://localhost:8080");
+
+      ws.current.onopen = () => {
+        ws.current.send(
+          JSON.stringify({ type: "userJoined", username: currentUser })
+        );
+      };
+
+      ws.current.onmessage = (event) => {
+        const newMessages = JSON.parse(event.data);
+        setMessages((prevMessages) => [...prevMessages, ...newMessages]);
+      };
+
+      return () => {
+        ws.current.close();
+      };
+    }
+  }, [isLoggedIn]);
+
+  const handleSendMessage = () => {
+    if (newMessage.trim() === "") return;
+
+    const message = {
+      sender: currentUser,
+      text: newMessage,
+      type: "message",
+      image: `https://picsum.photos/seed/${Math.random()}/50`,
+      replyTo: replyTo ? replyTo.id : null,
+    };
+
+    ws.current.send(JSON.stringify(message));
+    setNewMessage("");
+    setReplyTo(null);
+  };
+
+  const handleLogin = () => {
+    if (currentUser.trim() !== "") {
+      setIsLoggedIn(true);
+    }
+  };
+
+  const handleLogout = () => {
+    if (ws.current) {
+      ws.current.send(
+        JSON.stringify({ type: "userLeft", username: currentUser })
+      );
+      ws.current.send(
+        JSON.stringify({
+          type: "notification",
+          text: `${currentUser} has left the chat.`,
+        })
+      );
+      ws.current.close();
+    }
+    setIsLoggedIn(false);
+    setCurrentUser("");
+    setMessages([]);
+  };
+
+  const handleReply = (message) => {
+    setReplyTo(message);
+  };
+
+  return (
+    <div className="flex flex-col h-[83vh] mt-[80px] absolute right-2 rounded-lg items-end justify-end mx-auto w-[90%] md:w-[50%] lg:w-[25%] bg-gray-100">
+      {!isLoggedIn ? (
+        <div className="flex flex-col mx-auto h-full">
+          <h1 className="text-2xl mb-4 font-semibold text-cyan-950">Login</h1>
+          <input
+            type="text"
+            className="p-2 border border-gray-300 rounded mb-4"
+            placeholder="Enter your username"
+            value={currentUser}
+            onChange={(e) => setCurrentUser(e.target.value)}
+          />
+          <button
+            className="bg-cyan-950 text-white px-4 py-2 rounded"
+            onClick={handleLogin}
+          >
+            Login
+          </button>
+        </div>
+      ) : (
+        <>
+          <header className="bg-gray-800 p-4 text-white flex w-full rounded-tr-2xl rounded-tl-2xl justify-between">
+            <h1 className="text-xl">Votex ChatApp</h1>
+            <button
+              className="bg-red-500 text-white px-4 py-2 rounded"
+              onClick={handleLogout}
+            >
+              Leave Chat
+            </button>
+          </header>
+          <main className="flex-grow p-4 overflow-auto w-full  mx-auto">
+            <div className="space-y-4">
+              {messages.map((message, index) => (
+                <div
+                  key={index}
+                  className={`flex items-start space-x-4 ${
+                    message.sender === currentUser ? "justify-end" : ""
+                  }`}
+                >
+                  {message.type === "message" && (
+                    <>
+                      {message.sender !== currentUser && (
+                        <img
+                          src={message.image}
+                          alt="avatar"
+                          className="w-10 h-10 rounded-full"
+                        />
+                      )}
+                      <div
+                        className={`relative p-4 rounded-lg ${
+                          message.sender === currentUser
+                            ? "bg-cyan-950 text-white self-end"
+                            : "bg-gray-200 text-black"
+                        }`}
+                      >
+                        <div className="font-bold">{message.sender}</div>
+                        {message.replyTo && (
+                          <div className="text-sm text-gray-500 border-l-2 border-gray-300 pl-2 mb-2">
+                            Replying to:{" "}
+                            {
+                              messages.find((m) => m.id === message.replyTo)
+                                ?.text
+                            }
+                          </div>
+                        )}
+                        <div>{message.text}</div>
+                        <div
+                          className={`absolute bottom-0 ${
+                            message.sender === currentUser
+                              ? "right-0 transform translate-x-full"
+                              : "left-0 transform -translate-x-full"
+                          }`}
+                        >
+                          <div
+                            className={`w-0 h-0 border-t-8 border-t-transparent ${
+                              message.sender === currentUser
+                                ? "border-l-8 border-l-cyan-950"
+                                : "border-r-8 border-r-gray-200"
+                            } border-b-8 border-b-transparent`}
+                          ></div>
+                        </div>
+                      </div>
+                      {message.sender === currentUser && (
+                        <img
+                          src={message.image}
+                          alt="avatar"
+                          className="w-10 h-10 rounded-full"
+                        />
+                      )}
+                      <button onClick={() => handleReply(message)}>
+                        Reply
+                      </button>
+                    </>
+                  )}
+                  {message.type === "notification" && (
+                    <div className="text-center w-full text-gray-500">
+                      {message.text}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </main>
+          <footer className="bg-gray-800 p-5 shadow-inner w-full rounded-br-2xl rounded-bl-2xl">
+            <div className="flex items-center w-full mx-auto">
+              <input
+                type="text"
+                className="flex-grow p-3 rounded-l-lg border-none focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                placeholder="Type your message..."
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+              />
+              <button
+                className="bg-cyan-700 text-white px-6 py-3 rounded-r-lg hover:bg-yellow-500 font-semibold transition-all transform hover:scale-105"
+                onClick={handleSendMessage}
+              >
+                Send
+              </button>
+            </div>
+            {replyTo && (
+              <div className="text-sm text-gray-500 mt-2">
+                Replying to: {replyTo.text}
+                <button
+                  className="ml-2 text-red-500"
+                  onClick={() => setReplyTo(null)}
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
+          </footer>
+        </>
+      )}
+    </div>
+  );
+};
+
+export default Chatbot;
