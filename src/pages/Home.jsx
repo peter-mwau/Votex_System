@@ -4,6 +4,7 @@ import { useAccount } from "wagmi";
 import { useNavigate } from "react-router-dom";
 import ABI from "../artifacts/contracts/Voting.sol/Voting.json";
 import { useEthersSigner } from "../components/useClientSigner";
+import { useCandidates } from "../contexts/candidateContext";
 
 const contractAddress = import.meta.env.VITE_APP_CONTRACT_ADDRESS;
 const contractABI = ABI.abi;
@@ -17,6 +18,9 @@ const Home = () => {
   const signerPromise = useEthersSigner();
   const [verificationResult, setVerificationResult] = useState("");
   const navigate = useNavigate();
+  const { candidates, loading, error } = useCandidates();
+
+  console.log("candidates: ", candidates);
 
   const handleSignMessage = async () => {
     if (!isConnected) {
@@ -81,6 +85,14 @@ const Home = () => {
       setVerificationStatus(false);
     }
   };
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
 
   return (
     <>

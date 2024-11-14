@@ -30,6 +30,7 @@ contract Voting is ERC20 {
         string party;
         uint256 votes;
         bool verified;
+        string position;
     }
 
     struct Position {
@@ -51,7 +52,7 @@ contract Voting is ERC20 {
     bool public votingStarted = false;
 
     event VoterRegistrationSuccess(string indexed _names, uint256 _age, string indexed _idNumber);
-    event CandidateRegistrationSuccess(string indexed _names, uint256 _age, string indexed _idNumber, string _party);
+    event CandidateRegistrationSuccess(string indexed _names, uint256 _age, string indexed _idNumber, string _party, string _position);
     event VerifyCandidateSuccess(string indexed _names, string indexed _idNumber);
     event MintSuccess(address _to, uint256 _amount);
     event VotedSuccess(address indexed voter, string _idNumber, string position, uint256 candidateIndex);
@@ -93,6 +94,7 @@ contract Voting is ERC20 {
     // Register as a voter
     function registerVoter(string memory _names, uint256 _age, string memory _idNumber) external onlyDuringRegistration returns (bool) {
         require(bytes(voterObject[_idNumber].names).length == 0, "Voter already exists!");
+        require(voters[msg.sender].age == 0, "Account already registered as voter");
 
         Voter memory newVoter = Voter(_names, _age, _idNumber, false); // `voted` set to `false`
         listOfVoters.push(newVoter);
@@ -106,15 +108,15 @@ contract Voting is ERC20 {
     }
 
     // Register as a candidate
-    function registerCandidate(string memory _names, uint256 _age, string memory _idNumber, string memory _party) external onlyDuringRegistration {
+    function registerCandidate(string memory _names, uint256 _age, string memory _idNumber, string memory _party, string memory _position) external onlyDuringRegistration {
         require(bytes(candidateObject[_idNumber].names).length == 0, "Candidate already exists!");
         require(bytes(voterObject[_idNumber].names).length != 0, "You must be a registered voter!");
 
-        Candidate memory newCandidate = Candidate(_names, _age, _idNumber, _party, 0, false); // `votes` set to `0` and `verified` to `false`
+        Candidate memory newCandidate = Candidate(_names, _age, _idNumber, _party, 0, false, _position); // `votes` set to `0` and `verified` to `false`
         listOfCandidates.push(newCandidate);
         candidateObject[_idNumber] = newCandidate;
 
-        emit CandidateRegistrationSuccess(_names, _age, _idNumber, _party);
+        emit CandidateRegistrationSuccess(_names, _age, _idNumber, _party, _position);
     }
 
     // Verify a candidate

@@ -102,6 +102,12 @@ const Sidebar = () => {
                 Start/Stop Voting
               </Link>
               <Link
+                to="/admin/add-positions"
+                className="block py-2 px-3 rounded  text-gray-600 hover:bg-white"
+              >
+                Add Positions
+              </Link>
+              <Link
                 to="/view-voterDetails"
                 className="block py-2 px-3 text-gray-600 rounded hover:bg-white"
               >
