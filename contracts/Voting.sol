@@ -191,6 +191,10 @@ contract Voting is ERC20 {
         return listOfCandidates;
     }
 
+    function isVoterRegistered(address _account) public view returns (bool) {
+    return bytes(voters[_account].names).length != 0;
+}
+
     function createMessageHash(
     address userAddress,
     string memory domain,

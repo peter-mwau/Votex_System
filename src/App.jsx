@@ -7,6 +7,7 @@ import AddVoterForm from "./components/AddVoterForm";
 import StartRegistration from "./components/StartRegistration";
 import StartVoting from "./components/StartVoting";
 import VoterDetails from "./pages/voterDetails";
+import AddCandidate from "./components/AddCandidate";
 
 if (typeof global === "undefined") {
   var global = window;
@@ -21,6 +22,8 @@ function App() {
       <Routes>
         <Route path="/home" element={<Home />} />
         <Route path="/register-voter" element={<AddVoterForm />} />
+        <Route path="/register-candidate" element={<AddCandidate />} />
+
         <Route
           path="/admin/start-registration"
           element={<StartRegistration />}

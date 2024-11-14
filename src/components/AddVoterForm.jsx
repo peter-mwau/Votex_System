@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ethers } from "ethers";
 import ABI from "../artifacts/contracts/Voting.sol/Voting.json";
 import { useDisconnect, useAccount } from "wagmi";
@@ -9,10 +9,11 @@ const contractAddress = import.meta.env.VITE_APP_CONTRACT_ADDRESS;
 const contractABI = ABI.abi;
 
 const AddVoterForm = ({ onClose }) => {
-  const { isConnected } = useAccount();
+  const { isConnected, address } = useAccount();
   const { disconnect } = useDisconnect();
   const signerPromise = useEthersSigner();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isRegistered, setIsRegistered] = useState(false);
 
   const [officialNames, setOfficialNames] = useState("");
   const [idNumber, setIdNumber] = useState("");
@@ -35,6 +36,33 @@ const AddVoterForm = ({ onClose }) => {
     age,
     voted,
   };
+
+  const checkVoterRegistration = async () => {
+    try {
+      const signer = await signerPromise;
+      if (!signer) {
+        setError("No signer available. Please connect your wallet.");
+        return;
+      }
+
+      const contract = new ethers.Contract(
+        contractAddress,
+        contractABI,
+        signer
+      );
+      const isRegistered = await contract.isVoterRegistered(address);
+      setIsRegistered(isRegistered);
+    } catch (err) {
+      console.error("Error checking voter registration:", err);
+      setError("Failed to check voter registration. Please try again.");
+    }
+  };
+
+  useEffect(() => {
+    if (isConnected && address) {
+      checkVoterRegistration();
+    }
+  }, [isConnected, address]);
 
   const registerVoter = async () => {
     try {
@@ -130,110 +158,116 @@ const AddVoterForm = ({ onClose }) => {
       <div className="container mx-auto h-auto ">
         <div className="flex justify-center items-center pt-[100px]">
           <div className="w-full max-w-md">
-            <form className="bg-white dark:bg-gray-900 shadow-md rounded px-8 pt-6 pb-8 mb-4 dark:shadow-white">
-              <h2 className="text-center uppercase font-semibold text-cyan-950 dark:text-white pb-5 text-2xl">
-                Voter Form
-              </h2>
-              {success ? (
-                <p className="text-center text-green-500 pb-2">{success}</p>
-              ) : (
-                <p className="text-red-600 text-sm mb-4">{error}</p>
-              )}
-              <div className="flex flex-row gap-5 w-full">
-                {/* Official Names */}
-                <div className="mb-4 w-[50%]">
-                  <label
-                    className="block text-gray-900 dark:text-white text-sm font-bold mb-2"
-                    htmlFor="officialNames"
-                  >
-                    Official Names:
-                  </label>
-                  <input
-                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                    id="officialNames"
-                    type="text"
-                    placeholder="e.g John Doe"
-                    value={officialNames}
-                    onChange={(e) => setOfficialNames(e.target.value)}
-                    required
-                  />
+            {isRegistered ? (
+              <p className="text-center text-red-600 text-sm mb-4">
+                You have already registered as a voter.
+              </p>
+            ) : (
+              <form className="bg-white dark:bg-gray-900 shadow-md rounded px-8 pt-6 pb-8 mb-4 dark:shadow-white">
+                <h2 className="text-center uppercase font-semibold text-cyan-950 dark:text-white pb-5 text-2xl">
+                  Voter Form
+                </h2>
+                {success ? (
+                  <p className="text-center text-green-500 pb-2">{success}</p>
+                ) : (
+                  <p className="text-red-600 text-sm mb-4">{error}</p>
+                )}
+                <div className="flex flex-row gap-5 w-full">
+                  {/* Official Names */}
+                  <div className="mb-4 w-[50%]">
+                    <label
+                      className="block text-gray-900 dark:text-white text-sm font-bold mb-2"
+                      htmlFor="officialNames"
+                    >
+                      Official Names:
+                    </label>
+                    <input
+                      className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                      id="officialNames"
+                      type="text"
+                      placeholder="e.g John Doe"
+                      value={officialNames}
+                      onChange={(e) => setOfficialNames(e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  {/* ID Number */}
+                  <div className="mb-4 w-[50%]">
+                    <label
+                      className="block text-gray-900 dark:text-white text-sm font-bold mb-2"
+                      htmlFor="idNumber"
+                    >
+                      ID Number:
+                    </label>
+                    <input
+                      className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                      id="idNumber"
+                      type="text"
+                      placeholder="ID Number"
+                      value={idNumber}
+                      onChange={(e) => setIdNumber(e.target.value)}
+                      required
+                    />
+                  </div>
                 </div>
 
-                {/* ID Number */}
-                <div className="mb-4 w-[50%]">
-                  <label
-                    className="block text-gray-900 dark:text-white text-sm font-bold mb-2"
-                    htmlFor="idNumber"
-                  >
-                    ID Number:
-                  </label>
-                  <input
-                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                    id="idNumber"
-                    type="text"
-                    placeholder="ID Number"
-                    value={idNumber}
-                    onChange={(e) => setIdNumber(e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
+                <div className="flex flex-row gap-5 w-full">
+                  {/* Voted */}
+                  <div className="mb-4 w-[50%]">
+                    <label
+                      className="block text-gray-900 dark:text-white text-sm font-bold mb-2"
+                      htmlFor="text"
+                    >
+                      Voted:
+                    </label>
+                    <input
+                      className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                      id="voted"
+                      type="text"
+                      placeholder="Voting Status"
+                      value={voted}
+                      onChange={(e) => setIsVoted(e.target.value)}
+                      required
+                    />
+                  </div>
 
-              <div className="flex flex-row gap-5 w-full">
-                {/* Voted */}
-                <div className="mb-4 w-[50%]">
-                  <label
-                    className="block text-gray-900 dark:text-white text-sm font-bold mb-2"
-                    htmlFor="text"
-                  >
-                    Voted:
-                  </label>
-                  <input
-                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                    id="voted"
-                    type="text"
-                    placeholder="Voting Status"
-                    value={voted}
-                    onChange={(e) => setIsVoted(e.target.value)}
-                    required
-                  />
+                  {/* Age */}
+                  <div className="mb-4 w-[50%]">
+                    <label
+                      className="block text-gray-900 dark:text-white text-sm font-bold mb-2"
+                      htmlFor="age"
+                    >
+                      Age:
+                    </label>
+                    <input
+                      className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                      id="age"
+                      type="number"
+                      placeholder="Age"
+                      value={age}
+                      onChange={(e) => setAge(e.target.value)}
+                      min="18"
+                      required
+                    />
+                  </div>
                 </div>
 
-                {/* Age */}
-                <div className="mb-4 w-[50%]">
-                  <label
-                    className="block text-gray-900 dark:text-white text-sm font-bold mb-2"
-                    htmlFor="age"
+                {/* Submit Button */}
+                <div className="flex items-center justify-between">
+                  <button
+                    type="button"
+                    onClick={registerVoter}
+                    className={`bg-cyan-950 text-white font-semibold w-auto m-2 rounded-lg dark:bg-yellow-500 p-2  focus:outline-none focus:shadow-outline ${
+                      loading ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
+                    disabled={loading}
                   >
-                    Age:
-                  </label>
-                  <input
-                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                    id="age"
-                    type="number"
-                    placeholder="Age"
-                    value={age}
-                    onChange={(e) => setAge(e.target.value)}
-                    min="18"
-                    required
-                  />
+                    {loading ? "Registering..." : "Register Voter"}
+                  </button>
                 </div>
-              </div>
-
-              {/* Submit Button */}
-              <div className="flex items-center justify-between">
-                <button
-                  type="button"
-                  onClick={registerVoter}
-                  className={`bg-cyan-950 text-white font-semibold w-auto m-2 rounded-lg dark:bg-yellow-500 p-2  focus:outline-none focus:shadow-outline ${
-                    loading ? "opacity-50 cursor-not-allowed" : ""
-                  }`}
-                  disabled={loading}
-                >
-                  {loading ? "Registering..." : "Register Voter"}
-                </button>
-              </div>
-            </form>
+              </form>
+            )}
           </div>
         </div>
       </div>
