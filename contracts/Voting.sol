@@ -54,6 +54,7 @@ contract Voting is ERC20 {
     event VoterRegistrationSuccess(string indexed _names, uint256 _age, string indexed _idNumber);
     event CandidateRegistrationSuccess(string indexed _names, uint256 _age, string indexed _idNumber, string _party, string _position);
     event VerifyCandidateSuccess(string indexed _names, string indexed _idNumber);
+    event RejectCandidateSuccess(string indexed _idNumber);
     event MintSuccess(address _to, uint256 _amount);
     event VotedSuccess(address indexed voter, string _idNumber, string position, uint256 candidateIndex);
     event RegistrationStarted();
@@ -127,6 +128,26 @@ contract Voting is ERC20 {
         mintToken(msg.sender, VERIFY_CANDIDATE);
 
         emit VerifyCandidateSuccess(candidateObject[_idNumber].names, _idNumber);
+    }
+
+    // Reject a candidate
+    function rejectCandidate(string memory _idNumber) external onlyOwner {
+        require(bytes(candidateObject[_idNumber].names).length != 0, "Candidate does not exist!");
+
+        // Remove the candidate from the list
+        for (uint i = 0; i < listOfCandidates.length; i++) {
+            if (keccak256(abi.encodePacked(listOfCandidates[i].idNumber)) == keccak256(abi.encodePacked(_idNumber))) {
+                // Shift elements down to remove the candidate from the array
+                for (uint j = i; j < listOfCandidates.length - 1; j++) {
+                    listOfCandidates[j] = listOfCandidates[j + 1];
+                }
+                listOfCandidates.pop(); // Remove the last element
+                delete candidateObject[_idNumber]; // Remove from mapping
+
+                emit RejectCandidateSuccess(_idNumber);
+                break;
+            }
+        }
     }
 
     // Voting function
