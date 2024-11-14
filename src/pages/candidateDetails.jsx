@@ -160,8 +160,7 @@ const CandidateViewPage = () => {
                 </p>
                 <p className="text-gray-700 flex items-center">
                   <FaUser className="mr-2 text-cyan-800" />
-                  Position:{" "}
-                  <span className="ml-1 font-medium">{candidate[6]}</span>
+                  Pos: <span className="ml-1 font-medium">{candidate[6]}</span>
                 </p>
               </div>
               {!candidate[5] && isAdmin && (
@@ -184,7 +183,7 @@ const CandidateViewPage = () => {
                 <div className="mt-4">
                   <button
                     onClick={() => handleVote(candidate[2])}
-                    className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                    className="bg-cyan-950 font-semibold hover:cursor-pointer hover:bg-yellow-500 text-white px-3 py-2 rounded"
                   >
                     Vote
                   </button>

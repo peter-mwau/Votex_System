@@ -125,6 +125,14 @@ contract Voting is ERC20 {
         require(!candidateObject[_idNumber].verified, "Candidate already verified!");
         candidateObject[_idNumber].verified = true;
 
+        // Find the candidate in the listOfCandidates array and update
+        for (uint i = 0; i < listOfCandidates.length; i++) {
+            if (keccak256(abi.encodePacked(listOfCandidates[i].idNumber)) == keccak256(abi.encodePacked(_idNumber))) {
+                listOfCandidates[i].verified = true;
+                break;
+            }
+        }
+
         mintToken(msg.sender, VERIFY_CANDIDATE);
 
         emit VerifyCandidateSuccess(candidateObject[_idNumber].names, _idNumber);
