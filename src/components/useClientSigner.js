@@ -12,6 +12,14 @@ export function useEthersSigner() {
         const provider = new ethers.BrowserProvider(window.ethereum);
 
         // Return a promise that resolves to the signer
-        return provider.getSigner();
+        return provider.getSigner().then(signer => {
+            // Log provider and signer for debugging
+            console.log("Provider created:", provider);
+            console.log("Signer created:", signer);
+            return signer;
+        }).catch(error => {
+            console.error("Error creating signer:", error);
+            throw error;
+        });
     }, [walletClient]);
 }

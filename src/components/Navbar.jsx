@@ -80,6 +80,10 @@ const Navbar = () => {
       }
     } catch (error) {
       console.error("Error during login:", error);
+      if (error.code === "CALL_EXCEPTION") {
+        console.error("Transaction data:", error.transaction);
+        console.error("Revert reason:", error.reason);
+      }
       setVerificationResult("Error during verification");
     }
   };

@@ -34,10 +34,16 @@ const Sidebar = () => {
         // Fetch the owner address from the contract
         const ownerAddress = await contract.owner();
 
+        console.log("Owner: ", ownerAddress);
+
         // Compare the owner address with the connected address
         setIsAdmin(ownerAddress.toLowerCase() === address?.toLowerCase());
       } catch (error) {
         console.error("Error fetching owner from contract:", error);
+        if (error.code === "CALL_EXCEPTION") {
+          console.error("Transaction data:", error.transaction);
+          console.error("Revert reason:", error.reason);
+        }
         setError("Error checking admin status");
       }
     };

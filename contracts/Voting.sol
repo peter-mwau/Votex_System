@@ -183,6 +183,14 @@ contract Voting is ERC20 {
         return listOfPositions;
     }
 
+    function getVoters() public view returns (Voter[] memory) {
+        return listOfVoters;
+    }
+
+    function getCandidates() public view returns (Candidate[] memory) {
+        return listOfCandidates;
+    }
+
     function createMessageHash(
     address userAddress,
     string memory domain,

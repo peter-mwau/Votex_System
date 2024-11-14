@@ -1,93 +1,129 @@
-import { useEffect, useState } from "react";
+// VoterDetails.jsx
+import React, { useEffect, useState } from "react";
+import { useEthersSigner } from "../components/useClientSigner";
 import { ethers } from "ethers";
-import Filestorage from "@skalenetwork/filestorage.js"; // Skale Storage library
-import { useEthersSigner } from "../components/useClientSigner"; // Adjust this import if needed
+import { usePublicClient, useWalletClient } from "wagmi";
+import ABI from "../artifacts/contracts/Voting.sol/Voting.json";
 
 const VoterDetails = () => {
-  const signerPromise = useEthersSigner();
   const [voters, setVoters] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const signerPromise = useEthersSigner();
+  const publicClient = usePublicClient();
+  const { data: walletClient } = useWalletClient();
 
-  // Create the ethers provider
-  const provider = new ethers.JsonRpcProvider(import.meta.env.VITE_APP_RPC_URL);
+  const contractAddress = import.meta.env.VITE_APP_CONTRACT_ADDRESS;
+  const contractABI = ABI.abi;
 
-  // Initialize Filestorage with the ethers provider
-  const filestorage = new Filestorage(provider);
-
-  // Skale account details from environment variables
-  const account = import.meta.env.VITE_APP_PUBLIC_KEY;
-
-  // Function to fetch registered voters from Skale Storage
-  const fetchVoters = async () => {
+  async function getVotersFromContract(signer) {
     try {
-      setLoading(true);
-      setError("");
+      if (!signer) {
+        throw new Error("Signer is required to access the contract.");
+      }
 
-      // Define the path where voter data is stored in Skale Storage
-      const storagePath = "voter_data"; // Path where voters' files are stored
-
-      // Fetch the list of files (each representing a registered voter)
-      const files = await filestorage.listDirectory(storagePath);
-
-      // Process each file and fetch voter details
-      const voterDetails = await Promise.all(
-        files.map(async (file) => {
-          // Get file content from Skale Storage
-          const fileContent = await filestorage.getFile(account, file.path);
-
-          // Parse the content of the file (assuming it's JSON)
-          const voterData = JSON.parse(fileContent.toString());
-
-          return { fileName: file.name, ...voterData }; // Return voter details with filename (or add more if needed)
-        })
+      const contract = new ethers.Contract(
+        contractAddress,
+        contractABI,
+        signer
       );
 
-      console.log("V_Details: ", voterDetails);
-
-      // Update the state with the fetched voter details
-      setVoters(voterDetails);
+      // Fetch the list of voters at once
+      const voters = await contract.getVoters();
+      return voters.map((voter) => ({
+        names: voter.names,
+        age: Number(voter.age),
+        idNumber: voter.idNumber,
+        voted: Boolean(voter.voted),
+      }));
     } catch (error) {
-      setError("Error fetching voter details: " + error.message);
-    } finally {
-      setLoading(false);
+      console.error("Detailed error in getVotersFromContract:", error);
+      throw new Error(`Contract error: ${error.message}`);
     }
-  };
+  }
 
-  // Fetch voters when the component is mounted
   useEffect(() => {
-    fetchVoters();
-  }, []);
+    const fetchVoterDetails = async () => {
+      try {
+        setLoading(true);
+        setError("");
+
+        const signer = await signerPromise;
+        if (!signer) {
+          throw new Error("Please connect your wallet");
+        }
+
+        // Fetch all voters at once
+        const voters = await getVotersFromContract(signer);
+
+        // Update state with the fetched voters
+        setVoters(voters);
+        console.log("Voters: ", voters);
+      } catch (error) {
+        console.error("Detailed error in fetchVoterDetails:", error);
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchVoterDetails();
+  }, [signerPromise, walletClient]);
 
   return (
-    <div className="flex justify-center items-center flex-col pt-20 container">
-      <h1 className="text-2xl font-bold mb-6">Registered Voters</h1>
+    <div className="w-full max-w-4xl mx-auto p-4 pt-[100px]">
+      <h2 className="text-2xl font-bold mb-4">Registered Voters</h2>
 
-      {loading && <p>Loading voter details...</p>}
-      {error && <p className="text-red-600">{error}</p>}
+      {loading && (
+        <div className="text-center py-4">
+          <p className="text-blue-400">Loading voter details...</p>
+        </div>
+      )}
 
-      <div className="w-full">
-        <ul>
-          {voters.length > 0 ? (
-            voters.map((voter, index) => (
-              <li key={index} className="border-b py-2">
-                <p>
-                  <strong>Voter Name:</strong> {voter.officialNames}
-                </p>
-                <p>
-                  <strong>Voter ID:</strong> {voter.idNumber}
-                </p>
-                <p>
-                  <strong>Voter Age:</strong> {voter.age}
-                </p>
-                {/* Display any additional voter details if present */}
-              </li>
-            ))
-          ) : (
-            <p>No registered voters found.</p>
-          )}
-        </ul>
-      </div>
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          <p>{error}</p>
+        </div>
+      )}
+
+      {!loading && !error && voters.length === 0 && (
+        <div className="text-center py-4">
+          <p className="text-gray-500">No registered voters found</p>
+        </div>
+      )}
+
+      {voters.length > 0 && (
+        <div className="grid gap-4">
+          {voters.map((voter, index) => (
+            <div key={index} className="bg-white shadow rounded-lg p-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-gray-600">Official Names</p>
+                  <p className="font-semibold">{voter.names}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">ID Number</p>
+                  <p className="font-semibold">{voter.idNumber}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Age</p>
+                  <p className="font-semibold">{voter.age}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Voted Status</p>
+                  <p className="font-semibold">
+                    {voter.voted ? (
+                      <span className="text-green-500 font-semibold">True</span>
+                    ) : (
+                      <span className="text-red-500 font-semibold">False</span>
+                    )}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
