@@ -9,6 +9,7 @@ import StartVoting from "./components/StartVoting";
 import VoterDetails from "./pages/voterDetails";
 import AddCandidate from "./components/AddCandidate";
 import AddPositionsForm from "./components/AddPositions";
+import CandidateViewPage from "./pages/candidateDetails";
 
 if (typeof global === "undefined") {
   var global = window;
@@ -32,6 +33,7 @@ function App() {
         />
         <Route path="/admin/start-voting" element={<StartVoting />} />
         <Route path="/view-voterDetails" element={<VoterDetails />} />
+        <Route path="//admin/view-candidates" element={<CandidateViewPage />} />
       </Routes>
     </>
   );

@@ -57,7 +57,7 @@ const Sidebar = () => {
     <>
       {/* Toggle Button */}
       <button
-        className="text-2xl md:hidden fixed top-[105px] left-5 z-30 text-cyan-950"
+        className="text-2xl md:hidden fixed top-[105px] z-50 left-5 text-cyan-950"
         onClick={() => setOpen(!open)}
       >
         {open ? <FiX /> : <FiMenu />}
@@ -65,7 +65,7 @@ const Sidebar = () => {
       <div
         className={`${
           open ? "translate-x-0" : "-translate-x-full"
-        } transition-all duration-1000 flex flex-col h-full bg-gray-100 text-white w-64 p-5 mt-[80px] rounded-tr-md fixed top-0 left-0 md:w-1/4 lg:w-1/6`}
+        } transition-all duration-1000 z-40 flex flex-col h-full bg-gray-100 text-white w-64 p-5 mt-[80px] rounded-tr-md fixed top-0 left-0 md:w-1/4 lg:w-1/6`}
       >
         {/* Logo */}
         <div className="mb-8 text-center">
@@ -143,6 +143,12 @@ const Sidebar = () => {
                 className="block py-2 px-3 text-gray-600 rounded hover:bg-white"
               >
                 Register as Candidate
+              </Link>
+              <Link
+                to="/admin/view-candidates"
+                className="block py-2 px-3 rounded  text-gray-600 hover:bg-white"
+              >
+                View Candidates
               </Link>
             </>
           )}

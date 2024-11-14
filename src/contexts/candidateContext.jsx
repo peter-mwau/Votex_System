@@ -38,7 +38,12 @@ export const CandidateProvider = ({ children }) => {
 
         const candidates = await contract.getCandidates();
         console.log("Fetched candidates:", candidates);
-        setCandidates(candidates);
+        const plainCandidates = candidates.map((candidate) => ({
+          ...candidate,
+          age: candidate.age.toString(),
+          votes: candidate.votes.toString(),
+        }));
+        setCandidates(plainCandidates);
       } catch (error) {
         console.error("Error fetching candidates:", error);
         setError("Failed to fetch candidates.");
@@ -48,9 +53,7 @@ export const CandidateProvider = ({ children }) => {
     };
 
     fetchCandidates();
-  }, []);
-
-  console.log("Candidates: ", candidates);
+  }, [signerPromise, contractAddress, contractABI]);
 
   return (
     <CandidateContext.Provider value={{ candidates, loading, error }}>
