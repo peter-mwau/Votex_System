@@ -12,6 +12,7 @@ const contractABI = ABI.abi;
 const CandidateRegistration = () => {
   const [voterDetails, setVoterDetails] = useState(null);
   const [party, setParty] = useState("");
+  const [isCandidate, setIsCandidate] = useState(false);
   const { address, isConnected } = useAccount();
   const signerPromise = useEthersSigner();
   const [loading, setLoading] = useState(false);
@@ -24,12 +25,8 @@ const CandidateRegistration = () => {
     error: positionsError,
   } = usePositions();
 
-  console.log("Positions: ", positions);
-  console.log("Positions Loading: ", positionsLoading);
-  console.log("Positions Error: ", positionsError);
-
   const handleInputChange = (event) => {
-    const { name, value } = event.target;
+    const { value } = event.target;
     setPosition(value);
   };
 
@@ -46,6 +43,8 @@ const CandidateRegistration = () => {
           contractABI,
           signer
         );
+
+        // Check if the wallet is registered as a voter
         const isRegistered = await contract.isVoterRegistered(address);
         if (isRegistered) {
           const voter = await contract.voters(address);
@@ -58,6 +57,12 @@ const CandidateRegistration = () => {
             voted: Boolean(voter.voted),
           };
           setVoterDetails(voterDetails);
+
+          // Check if the wallet is already registered as a candidate
+          const isCandidate = await contract.isCandidateRegistered(
+            voter.idNumber
+          );
+          setIsCandidate(isCandidate); // Add a state for tracking candidate status
         } else {
           setVoterDetails(null);
         }
@@ -100,27 +105,6 @@ const CandidateRegistration = () => {
           position: position.replace(/,$/, "").trim(),
         };
 
-        console.log("Form Data: ", {
-          officialNames: formData.officialNames,
-          idNumber: formData.idNumber,
-          age: formData.age,
-          votes: formData.votes,
-          verified: formData.verified,
-          party: formData.party,
-          position: formData.position,
-        });
-
-        console.log("Data Types: ", {
-          officialNames: typeof formData.officialNames,
-          idNumber: typeof formData.idNumber,
-          age: typeof formData.age,
-          votes: typeof formData.votes,
-          verified: typeof formData.verified,
-          party: typeof formData.party,
-          position: typeof formData.position,
-        });
-
-        // Input validation
         if (
           !formData.officialNames ||
           !formData.idNumber ||
@@ -131,6 +115,7 @@ const CandidateRegistration = () => {
           setError("Please fill in all required fields");
           return;
         }
+
         const tx = await contract.registerCandidate(
           formData.officialNames,
           formData.age,
@@ -140,43 +125,24 @@ const CandidateRegistration = () => {
         );
 
         const receipt = await tx.wait();
-
-        // Only proceed with storage if transaction was successful
         if (receipt.status === 1) {
-          // Prepare the data for storage
           const jsonString = JSON.stringify(formData);
           const blob = new Blob([jsonString], { type: "application/json" });
           const file = new File([blob], `${formData.idNumber}.json`, {
             type: "application/json",
           });
 
-          // Create a DataTransfer object and add the file
           const dataTransfer = new DataTransfer();
           dataTransfer.items.add(file);
 
-          // Create a temporary file input element with the DataTransfer
           const tempFileInput = document.createElement("input");
           tempFileInput.type = "file";
           tempFileInput.files = dataTransfer.files;
 
-          // Upload to SKALE storage only after successful transaction
           await upload({ target: tempFileInput }, "candidate_data");
 
           setSuccess("Candidate Registered Successfully!");
           resetFormFields();
-
-          // Listen for the VoterRegistrationSuccess event
-          contract.on(
-            "CandidateRegistrationSuccess",
-            (names, age, idNumber, party) => {
-              console.log("Candidate Registration Event:", {
-                names,
-                age,
-                idNumber,
-                party,
-              });
-            }
-          );
         } else {
           setError("Transaction failed. Please try again.");
         }
@@ -191,56 +157,23 @@ const CandidateRegistration = () => {
 
   return (
     <div className="container mx-auto justify-center items-center pt-[100px] bg-white">
-      <div className=" max-w-lg bg-white shadow-md rounded-lg p-6 w-[90%] items-center lg:items-start lg:justify-start lg:mx-0 justify-center mx-auto">
-        {voterDetails ? (
-          <div className="">
+      <div className="max-w-lg bg-white shadow-md rounded-lg p-6 w-[90%] items-center lg:items-start lg:justify-start lg:mx-0 justify-center mx-auto">
+        {isCandidate ? (
+          <p className="text-center text-blue-500 font-medium">
+            You are already registered as a candidate.
+          </p>
+        ) : voterDetails ? (
+          <div>
             <h2 className="text-2xl font-bold text-gray-800 mb-6">
               Register as a Candidate
             </h2>
-            {success ? (
+            {success && (
               <p className="text-center text-green-500 pb-2">{success}</p>
-            ) : (
-              <p className="text-red-600 text-sm mb-4">{error}</p>
             )}
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              <div className="w-full">
-                <h3 className="text-gray-600 font-medium">Name:</h3>
-                <p className=" font-semibold shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                  {voterDetails.names}
-                </p>
-              </div>
-              <div className="w-full">
-                <h3 className="text-gray-600 font-medium">Age:</h3>
-                <p className=" font-semibold shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                  {voterDetails.age}
-                </p>
-              </div>
-              <div className="w-full">
-                <h3 className="text-gray-600 font-medium">ID Number:</h3>
-                <p className=" font-semibold shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                  {voterDetails.idNumber}
-                </p>
-              </div>
-              <div className="w-full">
-                <h3 className="text-gray-600 font-medium">Votes:</h3>
-                <p className=" font-semibold shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                  0
-                </p>
-              </div>
-              <div className="w-full">
-                <h3 className="text-gray-600 font-medium">Verified:</h3>
-                <p className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                  {voterDetails.verified ? (
-                    <span className="text-green-500 font-semibold">True</span>
-                  ) : (
-                    <span className="text-red-500 font-semibold">False</span>
-                  )}
-                </p>
-              </div>
-            </div>
+            {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="flex flex-row w-full gap-4">
-                <div className="items-start">
+                <div>
                   <label className="block text-gray-600 font-medium mb-2">
                     Party:
                   </label>
@@ -253,28 +186,25 @@ const CandidateRegistration = () => {
                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-200 focus:border-blue-500"
                   />
                 </div>
-                <div className="mb-4 w-full items-end">
-                  <label
-                    className="block text-gray-600 font-medium mb-2"
-                    htmlFor="position"
-                  >
+                <div>
+                  <label className="block text-gray-600 font-medium mb-2">
                     Position:
                   </label>
                   <select
-                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                     id="position"
                     name="position"
                     value={position}
                     onChange={handleInputChange}
                     required
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-200 focus:border-blue-500"
                   >
                     <option value="">Select a position</option>
                     {positionsLoading ? (
                       <option>Loading positions...</option>
                     ) : (
-                      positions.map((position, index) => (
-                        <option key={index} value={position}>
-                          {position}
+                      positions.map((pos, index) => (
+                        <option key={index} value={pos}>
+                          {pos}
                         </option>
                       ))
                     )}
@@ -283,10 +213,10 @@ const CandidateRegistration = () => {
               </div>
               <button
                 type="submit"
-                className={`bg-cyan-950 text-white font-semibold w-full items-center justify-center mx-auto flex m-2 rounded-md dark:bg-yellow-500 p-2  focus:outline-none focus:shadow-outline ${
+                disabled={loading}
+                className={`bg-cyan-950 text-white w-full rounded-md p-2 ${
                   loading ? "opacity-50 cursor-not-allowed" : ""
                 }`}
-                disabled={loading}
               >
                 {loading ? "Registering..." : "Register Candidate"}
               </button>

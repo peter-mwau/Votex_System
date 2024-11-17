@@ -134,7 +134,7 @@ const Sidebar = () => {
                 className="py-2 px-3 rounded text-gray-600 hover:bg-white flex items-center"
               >
                 <FaUserTie className="mr-2" />
-                View Candidates
+                Manage Candidates
               </Link>
               <Link
                 to="/chatbot"

@@ -47,7 +47,8 @@ contract Voting is ERC20 {
     mapping(string => Candidate) public candidateObject;
     mapping(string => Position) public positions;
     mapping(address => Voter) public voters;
-     mapping(string => bool) private positionExists;
+    mapping(string => bool) private positionExists;
+    mapping(address => mapping(string => bool)) public hasVotedForPosition;
 
     bool public registrationStarted = false;
     bool public votingStarted = false;
@@ -167,12 +168,29 @@ contract Voting is ERC20 {
     // Voting function
     function vote(string memory position, uint candidateIndex) public onlyDuringVoting {
         Voter storage voter = voters[msg.sender];
-        require(!voter.voted, "You have already voted.");
         require(positions[position].candidates.length > 0, "Invalid position.");
         require(candidateIndex < positions[position].candidates.length, "Invalid candidate index.");
+        require(!hasVotedForPosition[msg.sender][position], "You have already voted for this position.");
 
+        // Increment the votes in the positions mapping
         positions[position].candidates[candidateIndex].votes += 1;
+
+        // Find the candidate ID number
+        string memory candidateIdNumber = positions[position].candidates[candidateIndex].idNumber;
+
+        // Increment the votes in the listOfCandidates array
+        for (uint i = 0; i < listOfCandidates.length; i++) {
+            if (keccak256(abi.encodePacked(listOfCandidates[i].idNumber)) == keccak256(abi.encodePacked(candidateIdNumber))) {
+                listOfCandidates[i].votes += 1;
+                break;
+            }
+        }
+
+        // Increment the votes in the candidateObject mapping
+        candidateObject[candidateIdNumber].votes += 1;
+
         voter.voted = true;
+        hasVotedForPosition[msg.sender][position] = true;
 
         emit VotedSuccess(msg.sender, voter.idNumber, position, candidateIndex);
     }
@@ -253,7 +271,12 @@ contract Voting is ERC20 {
 
     function isVoterRegistered(address _account) public view returns (bool) {
     return bytes(voters[_account].names).length != 0;
+    }
+
+    function isCandidateRegistered(string memory _idNumber) public view returns (bool) {
+    return bytes(candidateObject[_idNumber].names).length > 0;
 }
+
 
     function createMessageHash(
     address userAddress,

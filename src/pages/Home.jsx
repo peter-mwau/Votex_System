@@ -99,7 +99,7 @@ const Home = () => {
             <h1 className="text-3xl font-bold text-center mb-4">
               Votex System
             </h1>
-            <p className="text-center text-yellow-500">
+            <p className="text-center text-gray-600 italic">
               Secure, transparent, and immutable voting platform
             </p>
           </div>
