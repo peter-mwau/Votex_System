@@ -94,10 +94,21 @@ const AddVoterForm = ({ onClose }) => {
     }
   };
 
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="bg-red-50 p-4 rounded-lg flex items-center text-red-700">
+          <AlertCircle className="h-5 w-5 mr-2" />
+          <span>{error}</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="container mx-auto h-auto p-6 pt-[100px]">
+    <div className="container mx-auto h-auto p-6 pt-[100px] transition-all duration-1000">
       <div className="flex justify-center items-center">
-        <div className="w-full max-w-md bg-white dark:bg-gray-900 shadow-md rounded px-8 py-6">
+        <div className="w-full max-w-md bg-white dark:bg-gray-900 shadow-md rounded px-8 py-6 transition-all duration-1000">
           <h2 className="text-2xl font-bold text-center text-cyan-950 dark:text-yellow-500 mb-6">
             {isRegistered ? (
               <p className="text-xl font-bold text-center text-cyan-950 dark:text-yellow-500 mb-6 flex flex-row gap-2 my-auto">

@@ -7,6 +7,8 @@ import ABI from "../artifacts/contracts/Voting.sol/Voting.json";
 import { useNavigate } from "react-router-dom";
 import { useEthersSigner } from "../components/useClientSigner";
 import { IoMdWallet } from "react-icons/io";
+import { MdOutlineLightMode } from "react-icons/md";
+import { MdDarkMode } from "react-icons/md";
 
 const contractAddress = import.meta.env.VITE_APP_CONTRACT_ADDRESS;
 const contractABI = ABI.abi;
@@ -19,6 +21,7 @@ const Navbar = () => {
   const [verificationResult, setVerificationResult] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const navigate = useNavigate();
+  const [darkMode, setDarkMode] = useState(false);
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const { data: balanceData } = useBalance({
     address,
@@ -54,6 +57,14 @@ const Navbar = () => {
       }
     }
   };
+
+  useEffect(() => {
+    if (darkMode) {
+      document.body.classList.add("dark");
+    } else {
+      document.body.classList.remove("dark");
+    }
+  }, [darkMode]);
 
   useEffect(() => {
     if (dropdownVisible) {
@@ -151,12 +162,14 @@ const Navbar = () => {
   };
 
   return (
-    <div className="fixed w-full h-auto bg-gray-100 shadow-md p-4">
+    <div className="fixed w-full h-auto bg-gray-100 shadow-md p-4 dark:bg-gray-900 dark:text-gray-50 transition-all duration-1000">
       <div className="flex justify-around items-center">
         {/* Logo */}
         <div className="flex items-center gap-2">
           <img src={logo} alt="logo" className="w-10 h-10" />
-          <h1 className="text-lg font-bold text-gray-700">Votex System</h1>
+          <h1 className="text-lg font-bold text-gray-700 dark:text-white">
+            Votex System
+          </h1>
         </div>
 
         <div
@@ -165,28 +178,28 @@ const Navbar = () => {
         ></div>
 
         {/* Navigation Links */}
-        <div className="md:flex lg:flex gap-6 hidden ">
+        <div className="md:flex lg:flex gap-6 hidden">
           <Link
             to="/home"
-            className="text-lg font-semibold text-gray-600 hover:text-gray-800"
+            className="text-lg font-semibold text-gray-600 hover:text-gray-800 dark:text-gray-200"
           >
             Home
           </Link>
           <Link
             to="/about"
-            className="text-lg font-semibold text-gray-600 hover:text-gray-800"
+            className="text-lg font-semibold text-gray-600 hover:text-gray-800 dark:text-gray-200"
           >
             About
           </Link>
           <Link
             to="/contact"
-            className="text-lg font-semibold text-gray-600 hover:text-gray-800"
+            className="text-lg font-semibold text-gray-600 hover:text-gray-800 dark:text-gray-200"
           >
             Contact
           </Link>
           <Link
             to="/help"
-            className="text-lg font-semibold text-gray-600 hover:text-gray-800"
+            className="text-lg font-semibold text-gray-600 hover:text-gray-800 dark:text-gray-200"
           >
             Help
           </Link>
@@ -215,6 +228,19 @@ const Navbar = () => {
           ) : (
             <ConnectButton />
           )}
+          <button className="mx-10">
+            {darkMode ? (
+              <MdOutlineLightMode
+                className="w-6 h-6 text-gray-800 dark:text-white"
+                onClick={() => setDarkMode(!darkMode)}
+              />
+            ) : (
+              <MdDarkMode
+                className="w-6 h-6 text-gray-800 dark:text-white"
+                onClick={() => setDarkMode(!darkMode)}
+              />
+            )}
+          </button>
         </div>
         {isConnected ? (
           <IoMdWallet
