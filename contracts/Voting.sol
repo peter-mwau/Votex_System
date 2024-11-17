@@ -216,6 +216,7 @@ contract Voting is ERC20 {
 
         votingStarted = false;
         votingEndTime = 0;
+        registrationStarted = true;
 
         emit VotingEnded();
     }
