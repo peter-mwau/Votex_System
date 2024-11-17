@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ethers } from "ethers";
 import { useAccount } from "wagmi";
 import { useNavigate } from "react-router-dom";
+import { Clock, Users, Vote, AlertCircle } from "lucide-react";
 import ABI from "../artifacts/contracts/Voting.sol/Voting.json";
 import { useEthersSigner } from "../components/useClientSigner";
 import { useCandidates } from "../contexts/candidateContext";
@@ -11,151 +12,173 @@ const contractABI = ABI.abi;
 
 const Home = () => {
   const { isConnected } = useAccount();
-  const [message, setMessage] = useState("");
-  const [signature, setSignature] = useState("");
-  const [hashedMessage, setHashedMessage] = useState("");
-  const [verificationStatus, setVerificationStatus] = useState(false);
+  const [timeLeft, setTimeLeft] = useState("");
+  const [votingStarted, setVotingStarted] = useState(false);
+  const [totalVotes, setTotalVotes] = useState(0);
   const signerPromise = useEthersSigner();
-  const [verificationResult, setVerificationResult] = useState("");
   const navigate = useNavigate();
   const { candidates, loading, error } = useCandidates();
 
-  console.log("candidates: ", candidates);
-
-  const handleSignMessage = async () => {
-    if (!isConnected) {
-      setVerificationStatus("Connect your wallet first");
-      return;
-    }
-
+  const fetchVotingStatus = async () => {
     try {
       const signer = await signerPromise;
-      if (!signer) {
-        setVerificationResult("Signer not found");
-        return;
-      }
-      // Fixed values for login
-      const domain = "signature-wave.com";
-      const statement = "Sign in to Signature Wave";
-      const uri = "https://signature-wave.com";
-      const nonce = Date.now();
-      const chainId = await signer.provider
-        .getNetwork()
-        .then((network) => network.chainId);
-      const userAddress = await signer.getAddress();
-
-      // Connect to the contract
       const contract = new ethers.Contract(
         contractAddress,
         contractABI,
         signer
       );
-
-      // Create message hash using contract's method
-      const messageHash = await contract.createMessageHash(
-        userAddress,
-        domain,
-        statement,
-        uri,
-        chainId,
-        nonce
+      const status = await contract.votingStarted();
+      const endTime = await contract.getVotingEndTime();
+      setVotingStarted(status);
+      // Calculate total votes
+      const votes = candidates.reduce(
+        (acc, curr) => acc + Number(curr.voteCount),
+        0
       );
-
-      setHashedMessage(messageHash);
-
-      // Sign the message hash
-      const signature = await signer.signMessage(ethers.getBytes(messageHash));
-
-      setSignature(signature);
-
-      // Verify the signature using the contract
-      const isVerified = await contract.verifySignature(messageHash, signature);
-
-      if (isVerified) {
-        setVerificationStatus(isVerified ? "True" : "False");
-        setVerificationResult("Verification Successfull!!");
-        setTimeout(() => {
-          navigate("/home");
-        }, 1500);
-      } else {
-        setVerificationResult("Login failed - signature verification error");
-      }
+      setTotalVotes(votes);
+      return endTime;
     } catch (error) {
-      console.error("Error signing message:", error);
-      setVerificationStatus(false);
+      console.error("Error fetching voting status:", error);
     }
   };
 
+  const calculateTimeLeft = (endTime) => {
+    const now = Math.floor(Date.now() / 1000);
+    const endTimeNumber = Number(endTime);
+    const difference = endTimeNumber - now;
+
+    if (difference <= 0) return "Voting has ended";
+
+    const days = Math.floor(difference / (24 * 60 * 60));
+    const hours = Math.floor((difference % (24 * 60 * 60)) / (60 * 60));
+    const minutes = Math.floor((difference % (60 * 60)) / 60);
+    const seconds = difference % 60;
+
+    return `${days}d ${hours}h ${minutes}m ${seconds}s`;
+  };
+
+  useEffect(() => {
+    const updateStatus = async () => {
+      const endTime = await fetchVotingStatus();
+      if (endTime) {
+        const interval = setInterval(() => {
+          setTimeLeft(calculateTimeLeft(endTime));
+        }, 1000);
+        return () => clearInterval(interval);
+      }
+    };
+    updateStatus();
+  }, [candidates]);
+
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      </div>
+    );
   }
 
   if (error) {
-    return <div>Error: {error}</div>;
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="bg-red-50 p-4 rounded-lg flex items-center text-red-700">
+          <AlertCircle className="h-5 w-5 mr-2" />
+          <span>{error}</span>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <>
-      <div className="bg-white min-h-screen flex items-center justify-center p-6">
-        <div className="w-full max-w-lg bg-white shadow-md rounded-lg p-8 space-y-6">
-          <h1 className="text-2xl font-semibold text-center text-gray-800">
-            Sign and Verify Message
-          </h1>
+    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto">
+        {/* Main Content Card */}
+        <div className="bg-white shadow-xl rounded-lg overflow-hidden mt-10">
+          {/* Header */}
+          <div className="bg-gray-200 p-8 text-cyan-950">
+            <h1 className="text-3xl font-bold text-center mb-4">
+              Votex System
+            </h1>
+            <p className="text-center text-yellow-500">
+              Secure, transparent, and immutable voting platform
+            </p>
+          </div>
 
-          {isConnected && (
-            <>
-              <div className="flex flex-col">
-                <label className="text-sm text-gray-600">Message</label>
-                <input
-                  type="text"
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  className="mt-1 p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Enter message to sign"
-                />
+          {/* Status Section */}
+          <div className="p-6">
+            {/* Timer Card */}
+            <div className="mb-8 bg-gradient-to-r from-cyan-500 to-cyan-950 rounded-lg p-6 text-white shadow-lg">
+              <div className="flex flex-col md:flex-row lg:flex-row gap-4 items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <Clock className="h-8 w-8" />
+                  <h2 className="text-2xl font-bold">Time Remaining</h2>
+                </div>
+                <div className="text-4xl font-mono font-bold tracking-wider">
+                  {timeLeft}
+                </div>
+              </div>
+            </div>
+
+            {/* Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              {/* Voting Status */}
+              <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
+                <div className="flex items-center space-x-3 mb-2">
+                  <Vote className="h-6 w-6 text-yellow-500" />
+                  <h3 className="text-lg font-semibold text-gray-700">
+                    Status
+                  </h3>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div
+                    className={`h-3 w-3 rounded-full ${
+                      votingStarted ? "bg-green-500" : "bg-red-500"
+                    } animate-pulse`}
+                  ></div>
+                  <span className="text-lg font-medium">
+                    {votingStarted ? "Voting Active" : "Voting Inactive"}
+                  </span>
+                </div>
               </div>
 
-              <button
-                onClick={handleSignMessage}
-                className="w-full py-2 px-4 bg-cyan-950 text-white font-semibold rounded-lg hover:bg-yellow-500 transition-colors"
-              >
-                Sign Message
-              </button>
+              {/* Total Candidates */}
+              <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
+                <div className="flex items-center space-x-3 mb-2">
+                  <Users className="h-6 w-6 text-yellow-500" />
+                  <h3 className="text-lg font-semibold text-gray-700">
+                    Candidates
+                  </h3>
+                </div>
+                <p className="text-2xl font-bold text-gray-900">
+                  {candidates.length}
+                </p>
+              </div>
 
-              {signature && (
-                <div className="space-y-4 bg-gray-50 p-4 rounded-lg">
-                  <div>
-                    <span className="font-semibold">Original Message:</span>{" "}
-                    <span className="break-words">{message}</span>
-                  </div>
-                  <div>
-                    <span className="font-semibold">Hashed Message:</span>{" "}
-                    <span className="break-words">{hashedMessage}</span>
-                  </div>
-                  <div>
-                    <span className="font-semibold">Signature:</span>{" "}
-                    <span className="break-words">{signature}</span>
-                  </div>
-                  <div>
-                    <span className="font-semibold">Verification Status:</span>{" "}
-                    <span className="italic text-green-500 font-semibold">
-                      {verificationStatus}
-                    </span>
-                  </div>
+              {/* Total Votes */}
+              <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
+                <div className="flex items-center space-x-3 mb-2">
+                  <Vote className="h-6 w-6 text-yellow-500" />
+                  <h3 className="text-lg font-semibold text-gray-700">
+                    Total Votes
+                  </h3>
+                </div>
+                <p className="text-2xl font-bold text-gray-900">{totalVotes}</p>
+              </div>
+            </div>
 
-                  <div>
-                    <span className="font-semibold">Verification Result:</span>{" "}
-                    <span className="text-yellow-500 italic">
-                      {verificationResult}
-                    </span>
-                  </div>
+            {/* Connection Status */}
+            <div className="text-center">
+              {!isConnected && (
+                <div className="inline-flex items-center px-4 py-2 rounded-md bg-yellow-50 text-yellow-800 border border-yellow-200">
+                  <AlertCircle className="h-5 w-5 mr-2" />
+                  Please connect your wallet to participate
                 </div>
               )}
-            </>
-          )}
+            </div>
+          </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

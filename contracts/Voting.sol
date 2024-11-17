@@ -15,6 +15,7 @@ contract Voting is ERC20 {
     using Strings for uint256;
 
     address public owner;
+    uint256 public votingEndTime;
 
     struct Voter {
         string names;
@@ -60,6 +61,7 @@ contract Voting is ERC20 {
     event RegistrationStarted();
     event RegistrationEnded();
     event VotingStarted();
+    event VotingEnded();
     event PositionAdded(string positionName);
 
     modifier onlyDuringRegistration() {
@@ -185,15 +187,36 @@ contract Voting is ERC20 {
     }
 
     // End the registration and start the voting process
-    function endRegistrationAndStartVoting() public onlyOwner {
+    function endRegistrationAndStartVoting(uint256 votingDays) public onlyOwner {
         require(registrationStarted, "Registration period has not started.");
         require(!votingStarted, "Voting has already started.");
 
         registrationStarted = false;
         votingStarted = true;
+        votingEndTime = block.timestamp + (votingDays * 1 days);
 
         emit RegistrationEnded();
         emit VotingStarted();
+    }
+
+    // Check if the voting period has ended
+    function hasVotingEnded() public view returns (bool) {
+        return votingStarted && block.timestamp >= votingEndTime;
+    }
+
+    // Fetch the voting end time
+    function getVotingEndTime() public view returns (uint256) {
+        return votingEndTime;
+    }
+
+    // End the voting process manually
+    function endVoting() public onlyOwner {
+        require(votingStarted, "Voting has not started.");
+        require(block.timestamp >= votingEndTime, "Voting period has not ended.");
+
+        votingStarted = false;
+
+        emit VotingEnded();
     }
 
     // Add one or multiple positions
