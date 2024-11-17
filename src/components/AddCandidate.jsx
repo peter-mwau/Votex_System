@@ -5,6 +5,7 @@ import { useEthersSigner } from "../components/useClientSigner";
 import ABI from "../artifacts/contracts/Voting.sol/Voting.json";
 import { upload } from "../providers/fileStorageConfig";
 import { usePositions } from "../contexts/positionsContext";
+import { AlertCircle } from "lucide-react";
 
 const contractAddress = import.meta.env.VITE_APP_CONTRACT_ADDRESS;
 const contractABI = ABI.abi;
@@ -159,7 +160,8 @@ const CandidateRegistration = () => {
     <div className="container mx-auto justify-center items-center pt-[100px] bg-white">
       <div className="max-w-lg bg-white shadow-md rounded-lg p-6 w-[90%] items-center lg:items-start lg:justify-start lg:mx-0 justify-center mx-auto">
         {isCandidate ? (
-          <p className="text-center text-blue-500 font-medium">
+          <p className="text-xl font-bold text-center text-cyan-950 dark:text-yellow-500 mb-6 flex flex-row gap-2 my-auto">
+            <AlertCircle className="h-6 w-6 text-red-600" />
             You are already registered as a candidate.
           </p>
         ) : voterDetails ? (

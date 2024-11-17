@@ -54,7 +54,7 @@ const StartRegistration = () => {
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         {/* Main Content Card */}
-        <div className="bg-white shadow-xl rounded-lg overflow-hidden mt-10">
+        <div className="bg-white shadow-xl rounded-lg overflow-hidden mt-[100px]">
           {/* Header */}
           <div className="bg-gray-200 p-8 text-cyan-950">
             <h1 className="text-3xl font-bold text-center mb-4">
@@ -77,12 +77,12 @@ const StartRegistration = () => {
                 <div className="text-lg font-semibold">
                   {registrationStarted ? (
                     <div className="flex items-center space-x-2">
-                      <CheckCircle className="h-6 w-6 text-white" />
+                      <CheckCircle className="h-6 w-6 text-green-500" />
                       <span>Registration is Active</span>
                     </div>
                   ) : (
                     <div className="flex items-center space-x-2">
-                      <AlertCircle className="h-6 w-6 text-red-500" />
+                      <AlertCircle className="h-6 w-6 text-red-600" />
                       <span>Registration Not Started</span>
                     </div>
                   )}

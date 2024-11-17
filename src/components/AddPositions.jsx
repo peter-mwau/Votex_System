@@ -79,7 +79,7 @@ const AddPositionsForm = ({ onClose }) => {
   };
 
   return (
-    <div className="container mx-auto py-16 px-4">
+    <div className="container mx-auto py-16 px-4 pt-[120px]">
       <div className="max-w-lg mx-auto">
         <div className="bg-white dark:bg-gray-900 shadow-md rounded-lg p-6">
           <h2 className="text-2xl font-bold text-center text-cyan-950 dark:text-white mb-4">

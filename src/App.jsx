@@ -14,6 +14,7 @@ import { Provider } from "react-redux";
 import store from "../backend/store.js";
 import Chatbot from "./components/chatbot.jsx";
 import Help from "./pages/Help.jsx";
+import ResultsPage from "./pages/Results.jsx";
 
 if (typeof global === "undefined") {
   var global = window;
@@ -47,6 +48,7 @@ function App() {
           }
         />
         <Route path="/help" element={<Help />} />
+        <Route path="/results" element={<ResultsPage />} />
       </Routes>
     </>
   );

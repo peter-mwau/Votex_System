@@ -4,6 +4,7 @@ import ABI from "../artifacts/contracts/Voting.sol/Voting.json";
 import { useDisconnect, useAccount } from "wagmi";
 import { useEthersSigner } from "../components/useClientSigner";
 import { upload } from "../providers/fileStorageConfig";
+import { AlertCircle } from "lucide-react";
 
 const contractAddress = import.meta.env.VITE_APP_CONTRACT_ADDRESS;
 const contractABI = ABI.abi;
@@ -98,7 +99,15 @@ const AddVoterForm = ({ onClose }) => {
       <div className="flex justify-center items-center">
         <div className="w-full max-w-md bg-white dark:bg-gray-900 shadow-md rounded px-8 py-6">
           <h2 className="text-2xl font-bold text-center text-cyan-950 dark:text-yellow-500 mb-6">
-            {isRegistered ? "Voter Already Registered" : "Register as a Voter"}
+            {isRegistered ? (
+              <p className="text-xl font-bold text-center text-cyan-950 dark:text-yellow-500 mb-6 flex flex-row gap-2 my-auto">
+                {" "}
+                <AlertCircle className="h-6 w-6 text-red-600" /> Voter Already
+                Registered
+              </p>
+            ) : (
+              "Register as a Voter"
+            )}
           </h2>
           {error && <p className="text-red-500 text-center mb-4">{error}</p>}
           {success && (

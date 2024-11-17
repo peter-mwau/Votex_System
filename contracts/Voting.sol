@@ -189,7 +189,7 @@ contract Voting is ERC20 {
         // Increment the votes in the candidateObject mapping
         candidateObject[candidateIdNumber].votes += 1;
 
-        voter.voted = true;
+        // voter.voted = true;
         hasVotedForPosition[msg.sender][position] = true;
 
         emit VotedSuccess(msg.sender, voter.idNumber, position, candidateIndex);
