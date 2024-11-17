@@ -60,10 +60,10 @@ const StartVoting = () => {
         contractABI,
         signer
       );
-      const gasLimit = await contract.estimateGas
-        .endVoting()
-        .catch(() => 1000000);
-      const tx = await contract.endVoting({ gasLimit });
+      // const gasLimit = await contract.estimateGas
+      //   .endVoting()
+      //   .catch(() => 1000000);
+      const tx = await contract.endVoting();
       await tx.wait();
       setStatus("Voting has been ended successfully.");
       fetchStatus();

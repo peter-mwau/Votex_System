@@ -212,9 +212,10 @@ contract Voting is ERC20 {
     // End the voting process manually
     function endVoting() public onlyOwner {
         require(votingStarted, "Voting has not started.");
-        require(block.timestamp >= votingEndTime, "Voting period has not ended.");
+        require(block.timestamp < votingEndTime, "Voting period has not ended.");
 
         votingStarted = false;
+        votingEndTime = 0;
 
         emit VotingEnded();
     }
