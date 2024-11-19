@@ -1,0 +1,72 @@
+[
+    {
+        "id": 1,
+        "name": "John Doe",
+        "reputation": "good",
+        "profile": 
+        {
+            "age": 45,
+            "education": "Master's in Public Administration",
+            "experience": 
+            [
+                "10 years as a city mayor",
+                "5 years as a senator",
+                "Advocate for renewable energy projects"
+            ],
+            "policies": 
+            [
+                "Promotes green energy initiatives",
+                "Supports healthcare reform",
+                "Advocates for improved public education"
+            ],
+            "achievements": 
+            [
+                "Reduced city emissions by 25%",
+                "Improved literacy rates in underserved communities",
+                "Secured $2M funding for local infrastructure projects"
+            ]
+        },
+        "image": "good_candidate.jpg",
+        "consequences": 
+        [
+            "future_growth.jpg",
+            "improved_infrastructure.jpg",
+            "jobs available.jpg",
+            "healthy_food.jpg"
+        ]
+    },
+    {
+        "id": 2,
+        "name": "Jane Smith",
+        "reputation": "bad",
+        "profile": 
+        {
+            "age": 38,
+            "education": "Bachelor's in Political Science",
+            "experience": 
+            [
+                "3 years as a council member",
+                "Owner of a lobbying firm"
+            ],
+            "policies": 
+            [
+                "Supports deregulation of industries",
+                "Advocates for privatization of public services",
+                "Proposes cuts to social welfare programs"
+            ],
+            "achievements": 
+            [
+                "Passed 5 bills benefiting corporate interests",
+                "Reduced environmental restrictions for businesses",
+                "Increased campaign funding from industrial sectors"
+            ]
+        },
+        "image": "bad_candidate.jpg",
+        "consequences": 
+        [
+            "polluted_environment.jpg",
+            "social_unrest.jpg",
+            "bad roads.jpg"
+        ]
+    }
+]

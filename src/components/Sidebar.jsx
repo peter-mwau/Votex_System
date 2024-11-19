@@ -17,6 +17,7 @@ import {
   FaUsers,
   FaUserTie,
 } from "react-icons/fa";
+import { Gavel } from "lucide-react";
 
 const contractAddress = import.meta.env.VITE_APP_CONTRACT_ADDRESS;
 const contractABI = ABI.abi;
@@ -173,6 +174,13 @@ const Sidebar = () => {
               >
                 <IoPerson className="mr-2" />
                 <span>Register as Candidate</span>
+              </Link>
+              <Link
+                to="/base-page"
+                className="py-2 px-3 rounded text-gray-600 hover:bg-white flex items-center dark:text-gray-300"
+              >
+                <Gavel className="mr-2" />
+                <span>Mock Trial</span>
               </Link>
               <Link
                 to="/admin/view-candidates"

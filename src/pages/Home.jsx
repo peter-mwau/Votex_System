@@ -2,7 +2,13 @@ import { useState, useEffect } from "react";
 import { ethers } from "ethers";
 import { useAccount } from "wagmi";
 import { useNavigate } from "react-router-dom";
-import { Clock, Users, Vote, AlertCircle } from "lucide-react";
+import {
+  Clock,
+  Users,
+  Vote,
+  AlertCircle,
+  ArrowRightCircle,
+} from "lucide-react";
 import ABI from "../artifacts/contracts/Voting.sol/Voting.json";
 import { useEthersSigner } from "../components/useClientSigner";
 import { useCandidates } from "../contexts/candidateContext";
@@ -174,6 +180,17 @@ const Home = () => {
                   Please connect your wallet to participate
                 </div>
               )}
+            </div>
+
+            {/* Navigation to Mock Trial */}
+            <div className="text-center">
+              <button
+                onClick={() => navigate("/base-page")}
+                className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-cyan-500 to-cyan-950 rounded-lg text-white text-lg font-bold shadow-lg transform transition-transform hover:scale-105"
+              >
+                <span>Go to Mock Trial</span>
+                <ArrowRightCircle className="h-6 w-6 ml-2" />
+              </button>
             </div>
           </div>
         </div>

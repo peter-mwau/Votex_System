@@ -15,6 +15,10 @@ import Chatbot from "./components/chatbot.jsx";
 import Help from "./pages/Help.jsx";
 import ResultsPage from "./pages/Results.jsx";
 import VotingPage from "./pages/votingPage.jsx";
+import MockVoting from "./components/mockTrial/mockVoting.jsx";
+import CivicEducation from "./components/mockTrial/civicEducation.jsx";
+import VotingQuiz from "./components/mockTrial/votingQuiz.jsx";
+import BasePage from "./components/mockTrial/BasePage.jsx";
 
 if (typeof global === "undefined") {
   var global = window;
@@ -49,6 +53,10 @@ function App() {
         />
         <Route path="/help" element={<Help />} />
         <Route path="/results" element={<ResultsPage />} />
+        <Route path="/mock-trial" element={<MockVoting />} />
+        <Route path="/civic-education" element={<CivicEducation />} />
+        <Route path="/voting-quiz" element={<VotingQuiz />} />
+        <Route path="/base-page" element={<BasePage />} />
       </Routes>
     </>
   );
