@@ -15,7 +15,7 @@ import { useAccount } from "wagmi";
 const contractAddress = import.meta.env.VITE_APP_CONTRACT_ADDRESS;
 const contractABI = ABI.abi;
 
-const CandidateViewPage = () => {
+const VotingPage = () => {
   const { candidates, loading } = useCandidates();
   const [isAdmin, setIsAdmin] = useState(false);
   const [error, setError] = useState(null);
@@ -23,6 +23,7 @@ const CandidateViewPage = () => {
   const signerPromise = useEthersSigner();
   const { address } = useAccount();
   const [refresh, setRefresh] = useState(false);
+  const [hasVotedForPosition, setHasVotedForPosition] = useState({});
 
   useEffect(() => {
     const checkIfAdmin = async () => {
@@ -49,6 +50,44 @@ const CandidateViewPage = () => {
       checkIfAdmin();
     }
   }, [address, signerPromise, contractAddress, contractABI]);
+
+  useEffect(() => {
+    const checkHasVoted = async () => {
+      try {
+        const signer = await signerPromise;
+        const contract = new ethers.Contract(
+          contractAddress,
+          contractABI,
+          signer
+        );
+
+        const positions = [
+          ...new Set(candidates.map((candidate) => candidate[6])),
+        ];
+        const hasVotedPromises = positions.map(async (position) => {
+          const hasVoted = await contract.hasVoted(address, position);
+          return { position, hasVoted };
+        });
+
+        const results = await Promise.all(hasVotedPromises);
+        const hasVotedForPosition = results.reduce(
+          (acc, { position, hasVoted }) => {
+            acc[position] = hasVoted;
+            return acc;
+          },
+          {}
+        );
+
+        setHasVotedForPosition(hasVotedForPosition);
+      } catch (error) {
+        console.error("Error checking vote status:", error);
+      }
+    };
+
+    if (address && candidates.length > 0) {
+      checkHasVoted();
+    }
+  }, [address, candidates, signerPromise, contractAddress, contractABI]);
 
   if (loading) return <p className="text-center text-gray-500">Loading...</p>;
   if (error) return <p className="text-center text-red-500">Error: {error}</p>;
@@ -96,7 +135,37 @@ const CandidateViewPage = () => {
         contractABI,
         signer
       );
-      const tx = await contract.vote(position, candidateIndex);
+
+      console.log("Voting for candidate index:", candidateIndex);
+      console.log("Contract address:", contractAddress);
+      console.log("Contract ABI:", contractABI);
+      console.log("Voting for candidate index:", candidateIndex);
+
+      // Ensure the candidate index is valid
+      if (candidateIndex < 0 || candidateIndex >= candidates.length) {
+        throw new Error("Invalid candidate index.");
+      }
+
+      // Check if the vote function exists on the contract
+      if (typeof contract.vote !== "function") {
+        console.error("The vote function does not exist on the contract.");
+        console.error(
+          "Contract methods available:",
+          Object.keys(contract.functions)
+        );
+        throw new Error("The vote function does not exist on the contract.");
+      }
+
+      // Estimate gas to check if the transaction is likely to succeed
+      const gasEstimate = await contract.estimateGas.vote(
+        position,
+        candidateIndex
+      );
+      console.log("Gas estimate:", gasEstimate.toString());
+
+      const tx = await contract.vote(position, candidateIndex, {
+        gasLimit: gasEstimate,
+      });
       await tx.wait();
       console.log(
         `Voted for candidate at index ${candidateIndex} for position ${position}`
@@ -104,20 +173,18 @@ const CandidateViewPage = () => {
       setSuccess(
         `Voted for candidate at index ${candidateIndex} for position ${position}`
       );
+      setHasVotedForPosition((prev) => ({
+        ...prev,
+        [position]: true,
+      }));
     } catch (error) {
       console.error("Full error object:", error);
-      if (
-        error &&
-        ethers.errors &&
-        error.code === ethers.errors.CALL_EXCEPTION
-      ) {
-        console.error("Transaction reverted:", error.reason);
-      } else if (error && error.code === -32603) {
-        console.error("Internal JSON-RPC error:", error.message, error.data);
-      } else {
-        console.error("Error voting for candidate:", error);
+      if (error && error.message) {
+        console.error("Error message:", error.message);
       }
-      setError(`Error voting for candidate: ${error.message}`);
+      if (error && error.stack) {
+        console.error("Error stack:", error.stack);
+      }
     }
   };
 
@@ -240,12 +307,23 @@ const CandidateViewPage = () => {
                       )}
                       {candidate[5] && (
                         <div className="mt-4">
-                          <button
-                            onClick={() => handleVote(position, candidateIndex)}
-                            className="bg-cyan-950 font-semibold hover:cursor-pointer hover:bg-yellow-500 text-white px-3 py-2 rounded"
-                          >
-                            Vote
-                          </button>
+                          {!hasVotedForPosition[position] ? (
+                            <button
+                              onClick={() =>
+                                handleVote(position, candidateIndex)
+                              }
+                              className="bg-cyan-950 font-semibold hover:cursor-pointer hover:bg-yellow-500 text-white px-3 py-2 rounded"
+                            >
+                              Vote
+                            </button>
+                          ) : (
+                            <button
+                              className="bg-cyan-950 bg-opacity-50 hover:cursor-not-allowed font-semibold hover:bg-yellow-500 text-white px-3 py-2 rounded"
+                              disabled
+                            >
+                              Vote
+                            </button>
+                          )}
                         </div>
                       )}
                     </div>
@@ -260,4 +338,4 @@ const CandidateViewPage = () => {
   );
 };
 
-export default CandidateViewPage;
+export default VotingPage;

@@ -64,6 +64,7 @@ contract Voting is ERC20 {
     event VotingStarted();
     event VotingEnded();
     event PositionAdded(string positionName);
+    event Debug(string message, address voter, string position, bool hasVoted);
 
     modifier onlyDuringRegistration() {
         require(registrationStarted, "Registration period has not started.");
@@ -167,32 +168,42 @@ contract Voting is ERC20 {
 
     // Voting function
     function vote(string memory position, uint candidateIndex) public onlyDuringVoting {
-        Voter storage voter = voters[msg.sender];
-        require(positions[position].candidates.length > 0, "Invalid position.");
-        require(candidateIndex < positions[position].candidates.length, "Invalid candidate index.");
-        require(!hasVotedForPosition[msg.sender][position], "You have already voted for this position.");
+    Voter storage voter = voters[msg.sender];
+    emit Debug("Checking position validity", msg.sender, position, false);
+    require(positions[position].candidates.length > 0, "Invalid position.");
+    emit Debug("Checking candidate index validity", msg.sender, position, false);
+    require(candidateIndex < positions[position].candidates.length, "Invalid candidate index.");
+    emit Debug("Checking if already voted for position", msg.sender, position, hasVotedForPosition[msg.sender][position]);
+    require(!hasVotedForPosition[msg.sender][position], "You have already voted for this position.");
 
-        // Increment the votes in the positions mapping
-        positions[position].candidates[candidateIndex].votes += 1;
+    // Increment the votes in the positions mapping
+    positions[position].candidates[candidateIndex].votes += 1;
 
-        // Find the candidate ID number
-        string memory candidateIdNumber = positions[position].candidates[candidateIndex].idNumber;
+    // Find the candidate ID number
+    string memory candidateIdNumber = positions[position].candidates[candidateIndex].idNumber;
 
-        // Increment the votes in the listOfCandidates array
-        for (uint i = 0; i < listOfCandidates.length; i++) {
-            if (keccak256(abi.encodePacked(listOfCandidates[i].idNumber)) == keccak256(abi.encodePacked(candidateIdNumber))) {
-                listOfCandidates[i].votes += 1;
-                break;
-            }
+    // Increment the votes in the listOfCandidates array
+    for (uint i = 0; i < listOfCandidates.length; i++) {
+        if (keccak256(abi.encodePacked(listOfCandidates[i].idNumber)) == keccak256(abi.encodePacked(candidateIdNumber))) {
+            listOfCandidates[i].votes += 1;
+            break;
         }
+    }
 
-        // Increment the votes in the candidateObject mapping
-        candidateObject[candidateIdNumber].votes += 1;
+    // Increment the votes in the candidateObject mapping
+    candidateObject[candidateIdNumber].votes += 1;
 
-        // voter.voted = true;
-        hasVotedForPosition[msg.sender][position] = true;
+    // Mark as voted for the position
+    hasVotedForPosition[msg.sender][position] = true;
 
-        emit VotedSuccess(msg.sender, voter.idNumber, position, candidateIndex);
+    emit VotedSuccess(msg.sender, voter.idNumber, position, candidateIndex);
+    emit Debug("Vote successful", msg.sender, position, true);
+}
+
+
+    // Function to check if a voter has voted for a specific position
+    function hasVoted(address voter, string memory position) public view returns (bool) {
+        return hasVotedForPosition[voter][position];
     }
 
     // Start the registration process

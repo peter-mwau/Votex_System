@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import nodePolyfills from 'vite-plugin-node-stdlib-browser';
+import path from 'path';
 
 export default defineConfig({
   plugins: [react(), nodePolyfills()],
@@ -9,6 +10,7 @@ export default defineConfig({
       process: 'process/browser',
       buffer: 'buffer',
       util: 'util',
+      '@': path.resolve(__dirname, './src'),
     },
   },
   optimizeDeps: {

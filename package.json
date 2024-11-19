@@ -10,6 +10,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@emotion/react": "^11.13.3",
+    "@emotion/styled": "^11.13.0",
+    "@mui/material": "^6.1.7",
     "@openzeppelin/contracts": "^5.1.0",
     "@rainbow-me/rainbowkit": "^2.2.0",
     "@skalenetwork/filestorage.js": "~1.0.1",
