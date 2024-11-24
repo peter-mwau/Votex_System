@@ -157,15 +157,13 @@ const VotingPage = () => {
       }
 
       // Estimate gas to check if the transaction is likely to succeed
-      const gasEstimate = await contract.estimateGas.vote(
-        position,
-        candidateIndex
-      );
-      console.log("Gas estimate:", gasEstimate.toString());
+      // const gasEstimate = await contract.estimateGas.vote(
+      //   position,
+      //   candidateIndex
+      // );
+      // console.log("Gas estimate:", gasEstimate.toString());
 
-      const tx = await contract.vote(position, candidateIndex, {
-        gasLimit: gasEstimate,
-      });
+      const tx = await contract.vote(position, candidateIndex);
       await tx.wait();
       console.log(
         `Voted for candidate at index ${candidateIndex} for position ${position}`

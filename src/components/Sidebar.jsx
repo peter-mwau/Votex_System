@@ -18,6 +18,7 @@ import {
   FaUserTie,
 } from "react-icons/fa";
 import { Gavel } from "lucide-react";
+import Chatbot from "./chatbot";
 
 const contractAddress = import.meta.env.VITE_APP_CONTRACT_ADDRESS;
 const contractABI = ABI.abi;
@@ -28,6 +29,7 @@ const Sidebar = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [error, setError] = useState(null); // Add error state
   const [open, setOpen] = useState(false);
+  const [showChatbot, setShowChatbot] = useState(false);
 
   useEffect(() => {
     const checkIfAdmin = async () => {
@@ -197,7 +199,8 @@ const Sidebar = () => {
                 <span>Results Page</span>
               </Link>
               <Link
-                to="/chatbot"
+                // to="/"
+                onClick={() => setShowChatbot(!showChatbot)}
                 className="py-2 px-3 rounded text-gray-600 hover:bg-white flex items-center dark:text-gray-300"
               >
                 <IoLogoWechat className="mr-2" />
@@ -219,6 +222,12 @@ const Sidebar = () => {
           &copy; 2024 Voting DApp
         </div>
       </div>
+
+      {showChatbot && (
+        <div className="fixed top-0 left-0 z-50">
+          <Chatbot />
+        </div>
+      )}
     </>
   );
 };

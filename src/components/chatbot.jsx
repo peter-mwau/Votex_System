@@ -1,4 +1,13 @@
 import { useState, useEffect, useRef } from "react";
+import {
+  Send,
+  LogOut,
+  X,
+  User,
+  Reply,
+  XCircle,
+  MessageSquare,
+} from "lucide-react";
 
 const Chatbot = () => {
   const [messages, setMessages] = useState([]);
@@ -6,6 +15,7 @@ const Chatbot = () => {
   const [currentUser, setCurrentUser] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [replyTo, setReplyTo] = useState(null);
+  const [isChatbotVisible, setIsChatbotVisible] = useState(true);
   const ws = useRef(null);
 
   useEffect(() => {
@@ -73,37 +83,78 @@ const Chatbot = () => {
     setReplyTo(message);
   };
 
+  const onClose = () => {
+    setIsChatbotVisible(false);
+  };
+
+  if (!isChatbotVisible) return null;
+
   return (
-    <div className="flex flex-col h-[83vh] mt-[80px] absolute right-2 rounded-lg items-end justify-end mx-auto w-[90%] md:w-[50%] lg:w-[25%] bg-gray-100">
+    <div className="fixed top-[80px] right-0 h-[80vh] w-[90%] md:w-[50%] lg:w-[23%] bg-gradient-to-b from-gray-100 to-gray-50 rounded-lg shadow-2xl border border-gray-200">
       {!isLoggedIn ? (
-        <div className="flex flex-col mx-auto h-full">
-          <h1 className="text-2xl mb-4 font-semibold text-cyan-950">Login</h1>
-          <input
-            type="text"
-            className="p-2 border border-gray-300 rounded mb-4"
-            placeholder="Enter your username"
-            value={currentUser}
-            onChange={(e) => setCurrentUser(e.target.value)}
-          />
+        <div className="flex flex-col h-full p-8 relative">
           <button
-            className="bg-cyan-950 text-white px-4 py-2 rounded"
-            onClick={handleLogin}
+            onClick={onClose}
+            className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition-colors"
           >
-            Login
+            <X className="w-5 h-5" />
           </button>
+
+          <div className="flex items-center justify-center mb-8">
+            <MessageSquare className="w-8 h-8 text-cyan-950 mr-2" />
+            <h1 className="text-2xl font-bold text-cyan-950">Votex Chat</h1>
+          </div>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">
+                Username
+              </label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  type="text"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-950 focus:border-transparent transition-all"
+                  placeholder="Enter your username"
+                  value={currentUser}
+                  onChange={(e) => setCurrentUser(e.target.value)}
+                />
+              </div>
+            </div>
+            <button
+              className="w-full bg-cyan-950 text-white px-4 py-2 rounded-lg hover:bg-cyan-900 transition-colors flex items-center justify-center space-x-2"
+              onClick={handleLogin}
+            >
+              <span>Join Chat</span>
+              <MessageSquare className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       ) : (
         <>
-          <header className="bg-gray-800 p-4 text-white flex w-full rounded-tr-2xl rounded-tl-2xl justify-between">
-            <h1 className="text-xl">Votex ChatApp</h1>
-            <button
-              className="bg-red-500 text-white px-4 py-2 rounded"
-              onClick={handleLogout}
-            >
-              Leave Chat
-            </button>
+          <header className="bg-cyan-950 p-4 text-white flex items-center justify-between rounded-t-lg relative">
+            <div className="flex items-center space-x-2">
+              <MessageSquare className="w-6 h-6" />
+              <h1 className="text-xl font-semibold">Votex Chat</h1>
+            </div>
+            <div className="flex items-center space-x-2">
+              <button
+                className="bg-red-500/10 hover:bg-red-500/20 text-red-500 px-3 py-1.5 rounded-lg transition-colors flex items-center space-x-1"
+                onClick={handleLogout}
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Leave</span>
+              </button>
+              <button
+                onClick={onClose}
+                className="text-gray-300 hover:text-white transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
           </header>
-          <main className="flex-grow p-4 overflow-auto w-full  mx-auto">
+
+          <main className="flex-grow p-4 overflow-auto w-full h-[68vh] scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
             <div className="space-y-4">
               {messages.map((message, index) => (
                 <div
@@ -118,91 +169,104 @@ const Chatbot = () => {
                         <img
                           src={message.image}
                           alt="avatar"
-                          className="w-10 h-10 rounded-full"
+                          className="w-8 h-8 rounded-full ring-2 ring-gray-200"
                         />
                       )}
-                      <div
-                        className={`relative p-4 rounded-lg ${
-                          message.sender === currentUser
-                            ? "bg-cyan-950 text-white self-end"
-                            : "bg-gray-200 text-black"
-                        }`}
-                      >
-                        <div className="font-bold">{message.sender}</div>
-                        {message.replyTo && (
-                          <div className="text-sm text-gray-500 border-l-2 border-gray-300 pl-2 mb-2">
-                            Replying to:{" "}
-                            {
-                              messages.find((m) => m.id === message.replyTo)
-                                ?.text
-                            }
-                          </div>
-                        )}
-                        <div>{message.text}</div>
+                      <div className="max-w-[75%]">
                         <div
-                          className={`absolute bottom-0 ${
+                          className={`relative p-3 rounded-2xl ${
                             message.sender === currentUser
-                              ? "right-0 transform translate-x-full"
-                              : "left-0 transform -translate-x-full"
+                              ? "bg-cyan-950 text-white"
+                              : "bg-gray-200 text-gray-900"
                           }`}
                         >
-                          <div
-                            className={`w-0 h-0 border-t-8 border-t-transparent ${
+                          <div className="text-sm font-medium mb-1">
+                            {message.sender}
+                          </div>
+                          {message.replyTo && (
+                            <div
+                              className={`text-xs mb-2 rounded-lg p-2 ${
+                                message.sender === currentUser
+                                  ? "bg-cyan-900 text-gray-300"
+                                  : "bg-gray-300 text-gray-700"
+                              }`}
+                            >
+                              <div className="font-medium mb-1">
+                                Replying to:
+                              </div>
+                              {
+                                messages.find((m) => m.id === message.replyTo)
+                                  ?.text
+                              }
+                            </div>
+                          )}
+                          <div className="text-sm">{message.text}</div>
+                        </div>
+                        <div className="flex items-center mt-1 space-x-2">
+                          <button
+                            onClick={() => handleReply(message)}
+                            className={`text-xs flex items-center space-x-1 ${
                               message.sender === currentUser
-                                ? "border-l-8 border-l-cyan-950"
-                                : "border-r-8 border-r-gray-200"
-                            } border-b-8 border-b-transparent`}
-                          ></div>
+                                ? "text-gray-600"
+                                : "text-gray-500"
+                            } hover:text-cyan-950 transition-colors`}
+                          >
+                            <Reply className="w-3 h-3" />
+                            <span>Reply</span>
+                          </button>
                         </div>
                       </div>
                       {message.sender === currentUser && (
                         <img
                           src={message.image}
                           alt="avatar"
-                          className="w-10 h-10 rounded-full"
+                          className="w-8 h-8 rounded-full ring-2 ring-gray-200"
                         />
                       )}
-                      <button onClick={() => handleReply(message)}>
-                        Reply
-                      </button>
                     </>
                   )}
                   {message.type === "notification" && (
-                    <div className="text-center w-full text-gray-500">
-                      {message.text}
+                    <div className="text-center w-full">
+                      <span className="text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                        {message.text}
+                      </span>
                     </div>
                   )}
                 </div>
               ))}
             </div>
           </main>
-          <footer className="bg-gray-800 p-5 shadow-inner w-full rounded-br-2xl rounded-bl-2xl">
-            <div className="flex items-center w-full mx-auto">
+
+          <footer className="bg-white p-4 border-t border-gray-200 rounded-b-lg">
+            {replyTo && (
+              <div className="flex items-center justify-between bg-gray-50 p-2 rounded-lg mb-2">
+                <div className="text-sm text-gray-600 flex items-center space-x-2">
+                  <Reply className="w-4 h-4 text-cyan-950" />
+                  <span className="truncate">{replyTo.text}</span>
+                </div>
+                <button
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  onClick={() => setReplyTo(null)}
+                >
+                  <XCircle className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+            <div className="flex items-center space-x-2">
               <input
                 type="text"
-                className="flex-grow p-3 rounded-l-lg border-none focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                className="flex-grow p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-cyan-950 focus:border-transparent transition-all text-sm"
                 placeholder="Type your message..."
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
               />
               <button
-                className="bg-cyan-700 text-white px-6 py-3 rounded-r-lg hover:bg-yellow-500 font-semibold transition-all transform hover:scale-105"
+                className="bg-cyan-950 text-white p-2 rounded-lg hover:bg-cyan-900 transition-all transform hover:scale-105 flex items-center justify-center"
                 onClick={handleSendMessage}
               >
-                Send
+                <Send className="w-5 h-5" />
               </button>
             </div>
-            {replyTo && (
-              <div className="text-sm text-gray-500 mt-2">
-                Replying to: {replyTo.text}
-                <button
-                  className="ml-2 text-red-500"
-                  onClick={() => setReplyTo(null)}
-                >
-                  Cancel
-                </button>
-              </div>
-            )}
           </footer>
         </>
       )}
