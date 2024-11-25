@@ -178,14 +178,14 @@ const Navbar = () => {
         ></div>
 
         {/* Navigation Links */}
-        <div className="md:flex lg:flex gap-6 hidden">
+        <div className="flex gap-6">
           <Link
             to="/home"
             className="text-lg font-semibold text-gray-600 hover:text-gray-800 dark:text-gray-200"
           >
             Home
           </Link>
-          <Link
+          {/* <Link
             to="/about"
             className="text-lg font-semibold text-gray-600 hover:text-gray-800 dark:text-gray-200"
           >
@@ -196,7 +196,7 @@ const Navbar = () => {
             className="text-lg font-semibold text-gray-600 hover:text-gray-800 dark:text-gray-200"
           >
             Contact
-          </Link>
+          </Link> */}
           <Link
             to="/help"
             className="text-lg font-semibold text-gray-600 hover:text-gray-800 dark:text-gray-200"
@@ -245,12 +245,12 @@ const Navbar = () => {
         {isConnected ? (
           <IoMdWallet
             onClick={toggleDropdown}
-            className="w-[40px] h-[40px] rounded-full p-2 hover:cursor-pointer border-2 border-green-500 lg:block hidden md:block"
+            className="w-[40px] h-[40px] rounded-full p-2 hover:cursor-pointer border-2 border-green-500"
           />
         ) : (
           <IoMdWallet
             onClick={toggleDropdown}
-            className="w-[40px] h-[40px] rounded-full p-2 hover:cursor-pointer border-2 border-gray-400 lg:block hidden md:block"
+            className="w-[40px] h-[40px] rounded-full p-2 hover:cursor-pointer border-2 border-gray-400"
           />
         )}
         {dropdownVisible && (

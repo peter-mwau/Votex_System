@@ -124,7 +124,7 @@ const EnhancedMockVoting = () => {
       >
         {isLoggedIn && (
           <div className="bg-cyan-100 p-2 text-center">
-            <p className="flex items-center justify-center space-x-4">
+            <div className="flex items-center justify-center space-x-4">
               <span className="flex items-center space-x-2">
                 <Clock
                   className={`mr-1 ${
@@ -149,7 +149,7 @@ const EnhancedMockVoting = () => {
                 <div className="h-3 w-3 rounded-full bg-red-500 animate-pulse"></div>
                 <span>Voting Opens In: {timeRemaining.voting}s</span>
               </span>
-            </p>
+            </div>
           </div>
         )}
 
