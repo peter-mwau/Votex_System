@@ -37,13 +37,24 @@ export const CandidateProvider = ({ children }) => {
         );
 
         const candidates = await contract.getCandidates();
-        console.log("Fetched candidates:", candidates);
-        const plainCandidates = candidates.map((candidate) => ({
-          ...candidate,
-          age: candidate.age.toString(),
-          votes: candidate.votes.toString(),
-        }));
+        const plainCandidates = candidates.map((candidate) => {
+          const relatedObject = candidate[7];
+          return {
+            ...candidate,
+            age: candidate.age.toString(),
+            votes: candidate.votes.toString(),
+            relatedObject: {
+              ...relatedObject,
+              property1: relatedObject[0],
+              property2: relatedObject[1],
+              property3: relatedObject[2],
+              property4: relatedObject[3],
+            },
+          };
+        });
+
         setCandidates(plainCandidates);
+        console.log("PLain Candidates: ", plainCandidates);
       } catch (error) {
         console.error("Error fetching candidates:", error);
         setError("Failed to fetch candidates.");

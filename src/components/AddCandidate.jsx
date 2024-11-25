@@ -20,6 +20,10 @@ const CandidateRegistration = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [position, setPosition] = useState("");
+  const [education, setEducation] = useState("");
+  const [experience, setExperience] = useState("");
+  const [achievements, setAchievements] = useState("");
+  const [policies, setPolicies] = useState("");
   const {
     positions,
     loading: positionsLoading,
@@ -80,6 +84,10 @@ const CandidateRegistration = () => {
   const resetFormFields = () => {
     setParty("");
     setPosition("");
+    setAchievements("");
+    setExperience("");
+    setPolicies("");
+    setEducation("");
   };
 
   const handleSubmit = async (e) => {
@@ -104,6 +112,10 @@ const CandidateRegistration = () => {
           verified: false,
           party: party,
           position: position.replace(/,$/, "").trim(),
+          education: education,
+          experience: experience,
+          achievements: achievements,
+          policies: policies,
         };
 
         if (
@@ -111,7 +123,11 @@ const CandidateRegistration = () => {
           !formData.idNumber ||
           !formData.age ||
           !formData.party ||
-          !formData.position
+          !formData.position ||
+          !formData.education ||
+          !formData.experience ||
+          !formData.achievements ||
+          !formData.policies
         ) {
           setError("Please fill in all required fields");
           return;
@@ -122,7 +138,11 @@ const CandidateRegistration = () => {
           formData.age,
           formData.idNumber,
           formData.party,
-          formData.position
+          formData.position,
+          formData.education,
+          formData.experience,
+          formData.achievements,
+          formData.policies
         );
 
         const receipt = await tx.wait();
@@ -212,6 +232,58 @@ const CandidateRegistration = () => {
                     )}
                   </select>
                 </div>
+              </div>
+              <div>
+                <label className="block text-gray-600 font-medium mb-2">
+                  Education:
+                </label>
+                <input
+                  type="text"
+                  name="education"
+                  value={education}
+                  onChange={(e) => setEducation(e.target.value)}
+                  required
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-200 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-gray-600 font-medium mb-2">
+                  Achievements:
+                </label>
+                <input
+                  type="text"
+                  name="achievements"
+                  value={achievements}
+                  onChange={(e) => setAchievements(e.target.value)}
+                  required
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-200 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-gray-600 font-medium mb-2">
+                  Experience:
+                </label>
+                <input
+                  type="text"
+                  name="experience"
+                  value={experience}
+                  onChange={(e) => setExperience(e.target.value)}
+                  required
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-200 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-gray-600 font-medium mb-2">
+                  Policies:
+                </label>
+                <input
+                  type="text"
+                  name="policies"
+                  value={policies}
+                  onChange={(e) => setPolicies(e.target.value)}
+                  required
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-200 focus:border-blue-500"
+                />
               </div>
               <button
                 type="submit"

@@ -162,7 +162,7 @@ const Navbar = () => {
   };
 
   return (
-    <div className="fixed w-full h-auto bg-gray-100 shadow-md p-4 dark:bg-gray-900 dark:text-gray-50 transition-all duration-1000">
+    <div className="fixed z-50 w-full h-auto bg-gray-100 shadow-md p-4 dark:bg-gray-900 dark:text-gray-50 transition-all duration-1000">
       <div className="flex justify-around items-center">
         {/* Logo */}
         <div className="flex items-center gap-2">

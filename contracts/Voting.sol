@@ -32,11 +32,19 @@ contract Voting is ERC20 {
         uint256 votes;
         bool verified;
         string position;
+        Profile profile;
     }
 
     struct Position {
         string pName;
         Candidate[] candidates;
+    }
+
+    struct Profile {
+        string education;
+        string achievements;
+        string experience;
+        string policies;
     }
 
     Voter[] public listOfVoters;
@@ -113,11 +121,11 @@ contract Voting is ERC20 {
     }
 
     // Register as a candidate
-    function registerCandidate(string memory _names, uint256 _age, string memory _idNumber, string memory _party, string memory _position) external onlyDuringRegistration {
+    function registerCandidate(string memory _names, uint256 _age, string memory _idNumber, string memory _party, string memory _position, string memory _education, string memory _achievements, string memory _experience, string memory _policies) external onlyDuringRegistration {
         require(bytes(candidateObject[_idNumber].names).length == 0, "Candidate already exists!");
         require(bytes(voterObject[_idNumber].names).length != 0, "You must be a registered voter!");
 
-        Candidate memory newCandidate = Candidate(_names, _age, _idNumber, _party, 0, false, _position); // `votes` set to `0` and `verified` to `false`
+        Candidate memory newCandidate = Candidate(_names, _age, _idNumber, _party, 0, false, _position, Profile(_education, _achievements, _experience, _policies)); // `votes` set to `0` and `verified` to `false`
         listOfCandidates.push(newCandidate);
         candidateObject[_idNumber] = newCandidate;
 
@@ -251,7 +259,7 @@ contract Voting is ERC20 {
     }
 
     // Add one or multiple positions
-    function addPositions(string[] memory _pNames) external onlyOwner {
+    function addPositions(string[] memory _pNames) external onlyOwner onlyDuringRegistration {
         for (uint i = 0; i < _pNames.length; i++) {
             require(!positionExists[_pNames[i]], "Position already exists!");
             Position storage newPosition = positions[_pNames[i]];
@@ -284,9 +292,13 @@ contract Voting is ERC20 {
     return bytes(voters[_account].names).length != 0;
     }
 
+    function getCandidateProfile(string memory _idNumber) public view returns (Profile memory) {
+        return candidateObject[_idNumber].profile;
+    }
+
     function isCandidateRegistered(string memory _idNumber) public view returns (bool) {
     return bytes(candidateObject[_idNumber].names).length > 0;
-}
+    }
 
 
     function createMessageHash(
