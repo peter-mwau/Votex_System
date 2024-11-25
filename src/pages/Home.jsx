@@ -20,10 +20,10 @@ const Home = () => {
   const { isConnected } = useAccount();
   const [timeLeft, setTimeLeft] = useState("");
   const [votingStarted, setVotingStarted] = useState(false);
-  const [totalVotes, setTotalVotes] = useState(0);
   const signerPromise = useEthersSigner();
   const navigate = useNavigate();
   const { candidates, loading, error } = useCandidates();
+  const [totalVotes, setTotalVotes] = useState(0);
 
   const fetchVotingStatus = async () => {
     try {
@@ -41,7 +41,7 @@ const Home = () => {
         (acc, curr) => acc + Number(curr.voteCount),
         0
       );
-      setTotalVotes(votes);
+      // setTotalVotes(votes);
       return endTime;
     } catch (error) {
       console.error("Error fetching voting status:", error);
@@ -62,6 +62,16 @@ const Home = () => {
 
     return `${days}d ${hours}h ${minutes}m ${seconds}s`;
   };
+
+  const getTotalVotes = (candidates) => {
+    const votes = candidates.reduce((acc, curr) => acc + Number(curr.votes), 0);
+    setTotalVotes(votes);
+    return votes;
+  };
+
+  useEffect(() => {
+    console.log("totalVotes: ", getTotalVotes(candidates));
+  }, [candidates]);
 
   useEffect(() => {
     const updateStatus = async () => {

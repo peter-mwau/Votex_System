@@ -62,6 +62,11 @@ VITE_APP_FILESTORAGE_ENDPOINT=your_filestorage_endpoint
 
 - You can obtain these details from the [SKALE Quick Start Guide](https://docs.skale.space/quick-start/deploy-to-testnet/).
 
+### Preview
+
+- This is how the Votex Dashboard looks like
+  ![Votex Homepage](public/homepage_votex.png)
+
 ### License
 
 - This project is licensed under the MIT License.
